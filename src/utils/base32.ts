@@ -36,14 +36,14 @@ export function isValid(versionByteName: VersionByteNames, encodedString: string
   }
 
   try {
-    const decoded = decode(versionByteName, encodedString);
+    const decoded = base32ToBinary(versionByteName, encodedString);
     return decoded.byteLength === 32;
   } catch (err) {
     return false;
   }
 }
 
-export function decode(versionByteName: VersionByteNames, encodedString: string): ArrayBuffer {
+export function base32ToBinary(versionByteName: VersionByteNames, encodedString: string): ArrayBuffer {
   const decodedArray = base32.decode(encodedString);
   if (encodedString !== base32.encode(decodedArray)) {
     throw new Error("invalid encoded string");
@@ -53,18 +53,18 @@ export function decode(versionByteName: VersionByteNames, encodedString: string)
   const crcValue = (decodedArray[arrayLength - 1] << 8) | decodedArray[arrayLength - 2];
   const expectedCrcValue = crc(decodedArray.slice(0, arrayLength - 2));
   if (crcValue !== expectedCrcValue) {
-    throw new Error(`invalid checksum`);
+    throw new Error(`invalid checksum (expected ${expectedCrcValue}, got ${crcValue})`);
   }
 
   const expectedVersion = VERSION_BYTES[versionByteName];
   if (decodedArray[0] !== expectedVersion) {
-    throw new Error(`invalid version byte. expected ${expectedVersion}, got ${decodedArray[0]}`);
+    throw new Error(`invalid version byte (expected ${expectedVersion}, got ${decodedArray[0]})`);
   }
 
   return new Uint8Array(decodedArray.slice(1, arrayLength - 2)).buffer;
 }
 
-export function encode(versionByteName: VersionByteNames, data: ArrayBuffer) {
+export function binaryToBase32(versionByteName: VersionByteNames, data: ArrayBuffer) {
   const dataArray = new Uint8Array(data);
 
   const unencodedArray = new Uint8Array(3 + data.byteLength);

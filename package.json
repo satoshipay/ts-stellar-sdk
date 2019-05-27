@@ -11,7 +11,7 @@
   "license": "ISC",
   "dependencies": {
     "base32.js": "^0.1.0",
-    "ts-stellar-xdr": "^0.3.0"
+    "ts-stellar-xdr": "^0.4.1"
   },
   "devDependencies": {
     "husky": "^2.3.0",

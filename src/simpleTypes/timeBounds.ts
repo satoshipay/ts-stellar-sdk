@@ -1,5 +1,4 @@
-import { Uint64 } from "ts-stellar-xdr/lib/utils";
-import { TimeBounds } from "ts-stellar-xdr";
+import { TimeBounds, UnsignedInteger64 } from "ts-stellar-xdr";
 
 export interface SimpleTimeBounds {
   minTime?: Date | number;
@@ -12,7 +11,7 @@ function createTimeBound(timeBound: Date | number | undefined) {
   }
 
   const timeBoundNumber = timeBound ? (typeof timeBound === "number" ? timeBound : timeBound.getTime() / 1000) : 0;
-  return Uint64.fromNumber(timeBoundNumber);
+  return UnsignedInteger64.fromNumber(timeBoundNumber);
 }
 
 export function createTimeBounds({ minTime, maxTime }: SimpleTimeBounds): TimeBounds {

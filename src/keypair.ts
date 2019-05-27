@@ -1,7 +1,7 @@
-interface HalfKeyPair {
+export interface HalfKeyPair {
   publicKey: ArrayBuffer;
 }
 
-type Keypair = HalfKeyPair & {
+export type Keypair = HalfKeyPair & {
   secretKey: ArrayBuffer;
 };

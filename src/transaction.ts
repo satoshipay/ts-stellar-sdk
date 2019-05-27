@@ -1,9 +1,8 @@
-import { Transaction } from "ts-stellar-xdr";
+import { Transaction, Integer64 } from "ts-stellar-xdr";
 
 import { createOperation, SimpleOperation } from "./operation";
 import { createAccountId } from "./simpleTypes/accountId";
 import { SimpleTimeBounds, createTimeBounds } from "./simpleTypes/timeBounds";
-import { Int64 } from "ts-stellar-xdr/lib/utils";
 import { createMemo } from "./simpleTypes/memo";
 
 const BASE_FEE = 100;
@@ -13,7 +12,7 @@ const MAX_INT32 = 0x7fffffff;
 export interface SimpleTransaction {
   sourceAccount: string;
   fee?: number;
-  seqNum: number | Int64;
+  seqNum: number | Integer64;
   timeBounds?: SimpleTimeBounds;
   memo?: string | number;
   operations: Array<SimpleOperation>;
@@ -28,7 +27,7 @@ export function createTransaction(transaction: SimpleTransaction): Transaction {
 
   const sourceAccount = createAccountId(transaction.sourceAccount);
   const fee = transaction.fee || BASE_FEE;
-  const seqNum = typeof transaction.seqNum === "number" ? Int64.fromNumber(transaction.seqNum) : transaction.seqNum;
+  const seqNum = typeof transaction.seqNum === "number" ? Integer64.fromNumber(transaction.seqNum) : transaction.seqNum;
   const timeBounds = transaction.timeBounds && createTimeBounds(transaction.timeBounds);
   const memo = createMemo(transaction.memo);
   const operations = transaction.operations.map(createOperation);

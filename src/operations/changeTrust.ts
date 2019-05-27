@@ -1,5 +1,4 @@
-import { ChangeTrustOp } from "ts-stellar-xdr";
-import { Int64 } from "ts-stellar-xdr/lib/utils";
+import { ChangeTrustOp, Integer64 } from "ts-stellar-xdr";
 
 import { SimpleAsset, createAsset } from "../simpleTypes/asset";
 import { SimpleInt64, createNonNegativeInt64 } from "../simpleTypes/int64";
@@ -13,10 +12,15 @@ export interface SimpleChangeTrustOp {
 }
 
 export function createChangeTrustOp(simpleOperation: SimpleChangeTrustOp): ChangeTrustOp {
-  const limitStroops = { limitStroops: simpleOperation.limitStroops || Int64.maxValue };
+  let limit: Integer64;
+  if (simpleOperation.limitStroops) {
+    limit = convert({ limitStroops: simpleOperation.limitStroops }, createNonNegativeInt64, "limitStroops");
+  } else {
+    limit = Integer64.maxValue;
+  }
 
   return {
     line: convert(simpleOperation, createAsset, "line"),
-    limit: convert(limitStroops, createNonNegativeInt64, "limitStroops")
+    limit
   };
 }

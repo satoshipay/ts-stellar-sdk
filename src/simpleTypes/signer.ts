@@ -1,6 +1,6 @@
 import { xdr } from "ts-stellar-xdr";
-import { base32ToBinary } from "../utils/base32";
-import { hexToBinary } from "../utils/hex";
+import { base32ToBinary, binaryToBase32 } from "../utils/base32";
+import { hexToBinary, binaryToHex } from "../utils/hex";
 import { createWeight } from "./weight";
 
 export type SimpleSigner =
@@ -61,4 +61,27 @@ export function createSigner(simpleSigner: SimpleSigner): xdr.Signer {
     key,
     weight
   };
+}
+
+export function simplifySigner(signer: xdr.Signer): SimpleSigner {
+  switch (signer.key.type) {
+    case "signerKeyTypeEd25519":
+      return {
+        type: "ed25519",
+        value: binaryToBase32("ed25519PublicKey", signer.key.value),
+        weight: signer.weight
+      };
+    case "signerKeyTypePreAuthTx":
+      return {
+        type: "preAuthTx",
+        value: binaryToHex(signer.key.value),
+        weight: signer.weight
+      };
+    case "signerKeyTypeHashX":
+      return {
+        type: "hashX",
+        value: binaryToHex(signer.key.value),
+        weight: signer.weight
+      };
+  }
 }

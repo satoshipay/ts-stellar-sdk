@@ -13,17 +13,25 @@ function isInvalidPositiveNumber(number: number) {
   return number <= 0 || number > MAX_INT32 || !isFinite(number) || isNaN(number);
 }
 
-export function createPrice(price: SimplePrice): xdr.Price {
-  if (typeof price === "object") {
-    if (isInvalidPositiveNumber(price.n) || isInvalidPositiveNumber(price.d)) {
+export function createPrice(simplePrice: SimplePrice): xdr.Price {
+  if (typeof simplePrice === "object") {
+    if (isInvalidPositiveNumber(simplePrice.n) || isInvalidPositiveNumber(simplePrice.d)) {
       throw new Error(`Number must be between 0 (exclusive) and ${MAX_INT32}`);
     }
-    return price;
+    return simplePrice;
   }
 
-  if (isInvalidPositiveNumber(price)) {
+  if (isInvalidPositiveNumber(simplePrice)) {
     throw new Error(`Number must be between 0 (exclusive) and ${MAX_INT32}`);
   }
 
-  return approximateAsFraction(price);
+  return approximateAsFraction(simplePrice);
+}
+
+export function simplifyPrice(price: xdr.Price): SimplePrice {
+  if (price.d === 0) {
+    return price;
+  }
+
+  return price.n / price.d;
 }

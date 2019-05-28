@@ -1,7 +1,7 @@
 import { xdr, int64 } from "ts-stellar-xdr";
 
-import { SimpleAsset, createAsset } from "../simpleTypes/asset";
-import { SimpleInt64, createNonNegativeInt64 } from "../simpleTypes/int64";
+import { SimpleAsset, createAsset, simplifyAsset } from "../simpleTypes/asset";
+import { SimpleInt64, createNonNegativeInt64, simplifyInt64 } from "../simpleTypes/int64";
 import { convert } from "../operation";
 
 export interface SimpleChangeTrustOp {
@@ -22,5 +22,14 @@ export function createChangeTrustOp(simpleOperation: SimpleChangeTrustOp): xdr.C
   return {
     line: convert(simpleOperation, createAsset, "line"),
     limit
+  };
+}
+
+export function simplifyChangeTrustOp(operation: xdr.ChangeTrustOp, sourceAccount?: string): SimpleChangeTrustOp {
+  return {
+    type: "changeTrust",
+    ...(sourceAccount === undefined ? null : { sourceAccount }),
+    line: simplifyAsset(operation.line),
+    ...(operation.limit.equals(int64.Signed.maxValue) ? null : { limitStroops: simplifyInt64(operation.limit) })
   };
 }

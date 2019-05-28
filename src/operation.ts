@@ -1,20 +1,28 @@
 import { xdr } from "ts-stellar-xdr";
 
-import { createAccountId } from "./simpleTypes/accountId";
+import { createAccountId, simplifyAccountId } from "./simpleTypes/accountId";
 
-import { SimpleCreateAccountOp, createCreateAccountOp } from "./operations/createAccount";
-import { SimplePaymentOp, createPaymentOp } from "./operations/payment";
-import { SimplePathPaymentOp, createPathPaymentOp } from "./operations/pathPaymant";
-import { SimpleManageSellOfferOp, createManageSellOfferOp } from "./operations/manageSellOffer";
-import { SimpleCreatePassiveSellOfferOp, createPassiveSellOfferOp } from "./operations/createPassiveSellOrder";
-import { SimpleChangeTrustOp, createChangeTrustOp } from "./operations/changeTrust";
-import { SimpleSetOptionsOp, createSetOptionstOp } from "./operations/setOptions";
-import { SimpleAccountMergeOp, createAccountMergeOp } from "./operations/accountMerge";
-import { SimpleInflationOp } from "./operations/inflation";
-import { SimpleAllowTrustOp, createAllowTrustOp } from "./operations/allowTrust";
-import { SimpleBumpSequenceOp, createBumpSequenceOp } from "./operations/bumpSequence";
-import { SimpleManageDataOp, createManageDataOp } from "./operations/manageData";
-import { SimpleManageBuyOfferOp, createManageBuyOfferOp } from "./operations/manageBuyOffer";
+import { SimpleCreateAccountOp, createCreateAccountOp, simplifyCreateAccountOp } from "./operations/createAccount";
+import { SimplePaymentOp, createPaymentOp, simplifyPaymentOp } from "./operations/payment";
+import { SimplePathPaymentOp, createPathPaymentOp, simplifyPathPaymentOp } from "./operations/pathPaymant";
+import {
+  SimpleManageSellOfferOp,
+  createManageSellOfferOp,
+  simplifyManageSellOfferOp
+} from "./operations/manageSellOffer";
+import {
+  SimpleCreatePassiveSellOfferOp,
+  createPassiveSellOfferOp,
+  simplifyPassiveSellOfferOp
+} from "./operations/createPassiveSellOrder";
+import { SimpleChangeTrustOp, createChangeTrustOp, simplifyChangeTrustOp } from "./operations/changeTrust";
+import { SimpleSetOptionsOp, createSetOptionstOp, simplifySetOptionstOp } from "./operations/setOptions";
+import { SimpleAccountMergeOp, createAccountMergeOp, simplifyAccountMergeOp } from "./operations/accountMerge";
+import { SimpleInflationOp, simplifyInflationOp } from "./operations/inflation";
+import { SimpleAllowTrustOp, createAllowTrustOp, simplifyAllowTrustOp } from "./operations/allowTrust";
+import { SimpleBumpSequenceOp, createBumpSequenceOp, simplifyBumpSequenceOp } from "./operations/bumpSequence";
+import { SimpleManageDataOp, createManageDataOp, simplifyManageDataOp } from "./operations/manageData";
+import { SimpleManageBuyOfferOp, createManageBuyOfferOp, simplifyManageBuyOfferOp } from "./operations/manageBuyOffer";
 
 export type SimpleOperation =
   | SimpleCreateAccountOp
@@ -134,6 +142,54 @@ export function createOperation(simpleOperation: SimpleOperation): xdr.Operation
   };
 }
 
+export function simplifyOperation(operation: xdr.Operation): SimpleOperation {
+  const sourceAccountId = operation.sourceAccount ? simplifyAccountId(operation.sourceAccount) : undefined;
+
+  switch (operation.body.type) {
+    case "createAccount":
+      return simplifyCreateAccountOp(operation.body.value, sourceAccountId);
+
+    case "payment":
+      return simplifyPaymentOp(operation.body.value, sourceAccountId);
+
+    case "pathPayment":
+      return simplifyPathPaymentOp(operation.body.value, sourceAccountId);
+
+    case "manageSellOffer":
+      return simplifyManageSellOfferOp(operation.body.value, sourceAccountId);
+
+    case "createPassiveSellOffer":
+      return simplifyPassiveSellOfferOp(operation.body.value, sourceAccountId);
+
+    case "setOption":
+      return simplifySetOptionstOp(operation.body.value, sourceAccountId);
+
+    case "changeTrust":
+      return simplifyChangeTrustOp(operation.body.value, sourceAccountId);
+
+    case "allowTrust":
+      return simplifyAllowTrustOp(operation.body.value, sourceAccountId);
+
+    case "accountMerge":
+      return simplifyAccountMergeOp(operation.body.value, sourceAccountId);
+
+    case "inflation":
+      return simplifyInflationOp(sourceAccountId);
+
+    case "manageDatum":
+      return simplifyManageDataOp(operation.body.value, sourceAccountId);
+
+    case "bumpSequence":
+      return simplifyBumpSequenceOp(operation.body.value, sourceAccountId);
+
+    case "manageBuyOffer":
+      return simplifyManageBuyOfferOp(operation.body.value, sourceAccountId);
+
+    default:
+      throw new Error(`Unknown operation type`);
+  }
+}
+
 export function convert<N extends string, T, S>(object: { [A in N]: S }, converter: (value: S) => T, name: N) {
   try {
     return converter(object[name]);
@@ -146,8 +202,9 @@ export function convertOptional<N extends string, T, S>(object: { [A in N]?: S }
   try {
     const value: S | undefined = object[name];
     if (typeof value === "undefined") {
-      return value;
+      return undefined;
     }
+
     return converter(value);
   } catch (error) {
     throw new Error(`${name} is invalid: ${error.message}`);

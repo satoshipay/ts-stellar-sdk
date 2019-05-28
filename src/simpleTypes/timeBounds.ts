@@ -5,7 +5,7 @@ export interface SimpleTimeBounds {
   maxTime?: Date | number;
 }
 
-function createTimeBound(timeBound: Date | number | undefined) {
+function createTimeBound(timeBound: Date | number | undefined): int64.Unsigned {
   if (typeof timeBound === "number" && (isNaN(timeBound) || !isFinite(timeBound))) {
     throw new Error("Timebound must a finite integer");
   }
@@ -18,5 +18,15 @@ export function createTimeBounds({ minTime, maxTime }: SimpleTimeBounds): xdr.Ti
   return {
     minTime: createTimeBound(minTime),
     maxTime: createTimeBound(maxTime)
+  };
+}
+
+export function simplifyTimeBounds(timeBounds: xdr.TimeBounds): SimpleTimeBounds {
+  const minTime = timeBounds.minTime.toNumber();
+  const maxTime = timeBounds.minTime.toNumber();
+
+  return {
+    ...(minTime === 0 ? null : { minTime: new Date(minTime * 1000) }),
+    ...(maxTime === 0 ? null : { maxTime: new Date(maxTime * 1000) })
   };
 }

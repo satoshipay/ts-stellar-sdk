@@ -1,9 +1,9 @@
 import { xdr } from "ts-stellar-xdr";
 
-import { SimpleAsset, createAsset } from "../simpleTypes/asset";
+import { SimpleAsset, createAsset, simplifyAsset } from "../simpleTypes/asset";
 import { convert } from "../operation";
-import { createAccountId } from "../simpleTypes/accountId";
-import { SimpleInt64, createPositiveInt64 } from "../simpleTypes/int64";
+import { createAccountId, simplifyAccountId } from "../simpleTypes/accountId";
+import { SimpleInt64, createPositiveInt64, simplifyInt64 } from "../simpleTypes/int64";
 
 export interface SimplePathPaymentOp {
   type: "pathPayment";
@@ -32,5 +32,20 @@ export function createPathPaymentOp(simpleOperation: SimplePathPaymentOp): xdr.P
     destAsset: convert(simpleOperation, createAsset, "destAsset"),
     destAmount: convert(simpleOperation, createPositiveInt64, "destAmountStroops"),
     path
+  };
+}
+
+export function simplifyPathPaymentOp(operation: xdr.PathPaymentOp, sourceAccount?: string): SimplePathPaymentOp {
+  const path = operation.path.map(simplifyAsset);
+
+  return {
+    type: "pathPayment",
+    ...(sourceAccount === undefined ? null : { sourceAccount }),
+    sendAsset: simplifyAsset(operation.sendAsset),
+    sendMaxStroops: simplifyInt64(operation.sendMax),
+    destination: simplifyAccountId(operation.destination),
+    destAsset: simplifyAsset(operation.destAsset),
+    destAmountStroops: simplifyInt64(operation.destAmount),
+    ...(path.length === 0 ? null : { path })
   };
 }

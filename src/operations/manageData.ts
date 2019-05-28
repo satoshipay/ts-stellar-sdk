@@ -1,6 +1,6 @@
 import { xdr } from "ts-stellar-xdr";
 
-import { stringToBinary } from "../utils/utf8";
+import { stringToBinary, binaryToString } from "../utils/utf8";
 
 export interface SimpleManageDataOp {
   type: "manageDatum";
@@ -26,5 +26,14 @@ export function createManageDataOp(simpleOperation: SimpleManageDataOp): xdr.Man
   return {
     dataName: simpleOperation.dataName,
     dataValue
+  };
+}
+
+export function simplifyManageDataOp(operation: xdr.ManageDataOp, sourceAccount?: string): SimpleManageDataOp {
+  return {
+    type: "manageDatum",
+    ...(sourceAccount === undefined ? null : { sourceAccount }),
+    dataName: operation.dataName,
+    ...(operation.dataValue ? { dataValue: binaryToString(operation.dataValue) } : null)
   };
 }

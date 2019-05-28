@@ -1,8 +1,8 @@
 import { xdr } from "ts-stellar-xdr";
 
-import { SimpleAsset, createAsset } from "../simpleTypes/asset";
-import { SimpleInt64, createInt64, createNonNegativeInt64 } from "../simpleTypes/int64";
-import { SimplePrice, createPrice } from "../simpleTypes/price";
+import { SimpleAsset, createAsset, simplifyAsset } from "../simpleTypes/asset";
+import { SimpleInt64, createInt64, createNonNegativeInt64, simplifyInt64 } from "../simpleTypes/int64";
+import { SimplePrice, createPrice, simplifyPrice } from "../simpleTypes/price";
 import { convert } from "../operation";
 
 export interface SimpleManageBuyOfferOp {
@@ -22,5 +22,22 @@ export function createManageBuyOfferOp(simpleOperation: SimpleManageBuyOfferOp):
     buyAmount: convert(simpleOperation, createNonNegativeInt64, "buyAmountStroops"),
     price: convert(simpleOperation, createPrice, "price"),
     offerId: convert({ offerId: simpleOperation.offerId || 0 }, createInt64, "offerId")
+  };
+}
+
+export function simplifyManageBuyOfferOp(
+  operation: xdr.ManageBuyOfferOp,
+  sourceAccount?: string
+): SimpleManageBuyOfferOp {
+  const offerId = simplifyInt64(operation.offerId);
+
+  return {
+    type: "manageBuyOffer",
+    ...(sourceAccount === undefined ? null : { sourceAccount }),
+    selling: simplifyAsset(operation.selling),
+    buying: simplifyAsset(operation.buying),
+    buyAmountStroops: simplifyInt64(operation.buyAmount),
+    price: simplifyPrice(operation.price),
+    ...(offerId === 0 ? null : { offerId })
   };
 }

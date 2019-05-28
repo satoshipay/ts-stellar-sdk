@@ -1,6 +1,6 @@
 import { xdr } from "ts-stellar-xdr";
 
-import { createAccountId } from "./accountId";
+import { createAccountId, simplifyAccountId } from "./accountId";
 
 export type SimpleAsset = "native" | { assetCode: string; issuer: string };
 
@@ -32,4 +32,33 @@ export function createAllowTrustOpAsset(assetCode: string): xdr.AllowTrustOpAsse
   return length <= 4
     ? { type: "assetTypeCreditAlphanum4", value: assetCodeArray.buffer }
     : { type: "assetTypeCreditAlphanum12", value: assetCodeArray.buffer };
+}
+
+export function simplifyAsset(asset: xdr.Asset): SimpleAsset {
+  switch (asset.type) {
+    case "assetTypeNative":
+      return "native";
+    case "assetTypeCreditAlphanum4":
+    case "assetTypeCreditAlphanum12":
+      return {
+        assetCode: simplifyAllowTrustOpAsset({ value: asset.value.assetCode }),
+        issuer: simplifyAccountId(asset.value.issuer)
+      };
+  }
+}
+
+export function simplifyAllowTrustOpAsset(allowTrustOpAsset: { value: ArrayBuffer }): string {
+  const uint8Array = new Uint8Array(allowTrustOpAsset.value);
+  const length = uint8Array.length;
+
+  let result = "";
+  for (let i = 0; i < length; i++) {
+    const charCode = uint8Array[i];
+    if (charCode === 0) {
+      break;
+    }
+    result += String.fromCharCode(charCode);
+  }
+
+  return result;
 }

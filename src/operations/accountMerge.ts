@@ -1,4 +1,4 @@
-import { AccountId } from "ts-stellar-xdr";
+import { xdr } from "ts-stellar-xdr";
 
 import { createAccountId } from "../simpleTypes/accountId";
 import { convert } from "../operation";
@@ -9,6 +9,6 @@ export interface SimpleAccountMergeOp {
   destinationAccount: string;
 }
 
-export function createAccountMergeOp(simpleOperation: SimpleAccountMergeOp): AccountId {
+export function createAccountMergeOp(simpleOperation: SimpleAccountMergeOp): xdr.AccountId {
   return convert(simpleOperation, createAccountId, "destinationAccount");
 }

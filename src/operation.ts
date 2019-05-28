@@ -1,4 +1,4 @@
-import { Operation, OperationBody } from "ts-stellar-xdr";
+import { xdr } from "ts-stellar-xdr";
 
 import { createAccountId } from "./simpleTypes/accountId";
 
@@ -31,8 +31,8 @@ export type SimpleOperation =
   | SimpleBumpSequenceOp
   | SimpleManageBuyOfferOp;
 
-export function createOperation(simpleOperation: SimpleOperation): Operation {
-  let operationBody: OperationBody;
+export function createOperation(simpleOperation: SimpleOperation): xdr.Operation {
+  let operationBody: xdr.OperationBody;
   switch (simpleOperation.type) {
     case "createAccount":
       operationBody = {

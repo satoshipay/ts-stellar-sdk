@@ -1,11 +1,11 @@
-import { Memo, UnsignedInteger64 } from "ts-stellar-xdr";
+import { xdr, int64 } from "ts-stellar-xdr";
 import { string } from "ts-stellar-xdr/lib/converters";
 
 export type SimpleMemo = string | number | undefined;
 
 const memoTextConverter = string(28);
 
-export function createMemo(simpleMemo: SimpleMemo): Memo {
+export function createMemo(simpleMemo: SimpleMemo): xdr.Memo {
   if (simpleMemo) {
     if (typeof simpleMemo === "string") {
       if (!memoTextConverter.isValid(simpleMemo)) {
@@ -13,7 +13,7 @@ export function createMemo(simpleMemo: SimpleMemo): Memo {
       }
       return { type: "memoText", value: simpleMemo };
     } else {
-      return { type: "memoId", value: UnsignedInteger64.fromNumber(simpleMemo) };
+      return { type: "memoId", value: int64.Unsigned.fromNumber(simpleMemo) };
     }
   } else {
     return { type: "memoNone" };

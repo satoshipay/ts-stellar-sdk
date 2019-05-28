@@ -1,4 +1,4 @@
-import { AllowTrustOp } from "ts-stellar-xdr";
+import { xdr } from "ts-stellar-xdr";
 
 import { convert } from "../operation";
 import { createAccountId } from "../simpleTypes/accountId";
@@ -12,7 +12,7 @@ export interface SimpleAllowTrustOp {
   authorize: boolean;
 }
 
-export function createAllowTrustOp(simpleOperation: SimpleAllowTrustOp): AllowTrustOp {
+export function createAllowTrustOp(simpleOperation: SimpleAllowTrustOp): xdr.AllowTrustOp {
   return {
     trustor: convert(simpleOperation, createAccountId, "trustor"),
     asset: convert(simpleOperation, createAllowTrustOpAsset, "asset"),

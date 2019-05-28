@@ -1,4 +1,4 @@
-import { Transaction, Integer64 } from "ts-stellar-xdr";
+import { xdr, int64 } from "ts-stellar-xdr";
 
 import { createOperation, SimpleOperation } from "./operation";
 import { createAccountId } from "./simpleTypes/accountId";
@@ -12,13 +12,13 @@ const MAX_INT32 = 0x7fffffff;
 export interface SimpleTransaction {
   sourceAccount: string;
   fee?: number;
-  seqNum: number | Integer64;
+  seqNum: number | int64.Signed;
   timeBounds?: SimpleTimeBounds;
   memo?: string | number;
   operations: Array<SimpleOperation>;
 }
 
-export function createTransaction(transaction: SimpleTransaction): Transaction {
+export function createTransaction(transaction: SimpleTransaction): xdr.Transaction {
   if (typeof transaction.fee === "number") {
     if (transaction.fee < 0 || transaction.fee > MAX_INT32 || isNaN(transaction.fee) || !isFinite(transaction.fee)) {
       throw new Error(`Transaction fee must be between ${0} and ${MAX_INT32}`);
@@ -27,7 +27,8 @@ export function createTransaction(transaction: SimpleTransaction): Transaction {
 
   const sourceAccount = createAccountId(transaction.sourceAccount);
   const fee = transaction.fee || BASE_FEE;
-  const seqNum = typeof transaction.seqNum === "number" ? Integer64.fromNumber(transaction.seqNum) : transaction.seqNum;
+  const seqNum =
+    typeof transaction.seqNum === "number" ? int64.Signed.fromNumber(transaction.seqNum) : transaction.seqNum;
   const timeBounds = transaction.timeBounds && createTimeBounds(transaction.timeBounds);
   const memo = createMemo(transaction.memo);
   const operations = transaction.operations.map(createOperation);

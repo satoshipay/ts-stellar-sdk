@@ -1,10 +1,10 @@
-import { Asset, AllowTrustOpAsset } from "ts-stellar-xdr";
+import { xdr } from "ts-stellar-xdr";
 
 import { createAccountId } from "./accountId";
 
 export type SimpleAsset = "native" | { assetCode: string; issuer: string };
 
-export function createAsset(simpleAsset: SimpleAsset): Asset {
+export function createAsset(simpleAsset: SimpleAsset): xdr.Asset {
   if (simpleAsset === "native") {
     return { type: "assetTypeNative" };
   }
@@ -20,7 +20,7 @@ export function createAsset(simpleAsset: SimpleAsset): Asset {
     : { type: "assetTypeCreditAlphanum12", value };
 }
 
-export function createAllowTrustOpAsset(assetCode: string): AllowTrustOpAsset {
+export function createAllowTrustOpAsset(assetCode: string): xdr.AllowTrustOpAsset {
   if (!/^[a-zA-Z0-9]{1,12}$/.test(assetCode)) {
     throw new Error("Asset code is invalid (maximum alphanumeric, 12 characters at max)");
   }

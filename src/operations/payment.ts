@@ -1,4 +1,4 @@
-import { PaymentOp } from "ts-stellar-xdr";
+import { xdr } from "ts-stellar-xdr";
 
 import { createAccountId } from "../simpleTypes/accountId";
 import { convert } from "../operation";
@@ -13,7 +13,7 @@ export interface SimplePaymentOp {
   amountStroops: SimpleInt64;
 }
 
-export function createPaymentOp(simpleOperation: SimplePaymentOp): PaymentOp {
+export function createPaymentOp(simpleOperation: SimplePaymentOp): xdr.PaymentOp {
   return {
     destination: convert(simpleOperation, createAccountId, "destination"),
     asset: convert(simpleOperation, createAsset, "asset"),

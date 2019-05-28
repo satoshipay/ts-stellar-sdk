@@ -1,4 +1,5 @@
-import { ManageDataOp, String64 } from "ts-stellar-xdr";
+import { xdr } from "ts-stellar-xdr";
+
 import { stringToBinary } from "../utils/utf8";
 
 export interface SimpleManageDataOp {
@@ -8,8 +9,8 @@ export interface SimpleManageDataOp {
   dataValue?: ArrayBuffer | string;
 }
 
-export function createManageDataOp(simpleOperation: SimpleManageDataOp): ManageDataOp {
-  if (!String64.isValid(simpleOperation.dataName)) {
+export function createManageDataOp(simpleOperation: SimpleManageDataOp): xdr.ManageDataOp {
+  if (!xdr.String64.isValid(simpleOperation.dataName)) {
     throw new Error(`homeDomain invalid or too long – only 64 bytes allowed`);
   }
 

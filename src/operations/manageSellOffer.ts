@@ -1,4 +1,4 @@
-import { ManageSellOfferOp } from "ts-stellar-xdr";
+import { xdr } from "ts-stellar-xdr";
 
 import { SimpleAsset, createAsset } from "../simpleTypes/asset";
 import { convert } from "../operation";
@@ -15,7 +15,7 @@ export interface SimpleManageSellOfferOp {
   offerId?: SimpleInt64;
 }
 
-export function createManageSellOfferOp(simpleOperation: SimpleManageSellOfferOp): ManageSellOfferOp {
+export function createManageSellOfferOp(simpleOperation: SimpleManageSellOfferOp): xdr.ManageSellOfferOp {
   return {
     selling: convert(simpleOperation, createAsset, "selling"),
     buying: convert(simpleOperation, createAsset, "buying"),

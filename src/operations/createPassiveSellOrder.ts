@@ -1,4 +1,4 @@
-import { CreatePassiveSellOfferOp } from "ts-stellar-xdr";
+import { xdr } from "ts-stellar-xdr";
 
 import { SimpleAsset, createAsset } from "../simpleTypes/asset";
 import { SimpleInt64, createPositiveInt64 } from "../simpleTypes/int64";
@@ -14,7 +14,9 @@ export interface SimpleCreatePassiveSellOfferOp {
   price: SimplePrice;
 }
 
-export function createPassiveSellOfferOp(simpleOperation: SimpleCreatePassiveSellOfferOp): CreatePassiveSellOfferOp {
+export function createPassiveSellOfferOp(
+  simpleOperation: SimpleCreatePassiveSellOfferOp
+): xdr.CreatePassiveSellOfferOp {
   return {
     selling: convert(simpleOperation, createAsset, "selling"),
     buying: convert(simpleOperation, createAsset, "buying"),

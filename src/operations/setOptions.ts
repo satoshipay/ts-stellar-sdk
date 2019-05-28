@@ -1,4 +1,4 @@
-import { SetOptionsOp, String32 } from "ts-stellar-xdr";
+import { xdr } from "ts-stellar-xdr";
 
 import { SimpleSigner, createSigner } from "../simpleTypes/signer";
 import { convertOptional } from "../operation";
@@ -19,8 +19,8 @@ export interface SimpleSetOptionsOp {
   signer?: SimpleSigner;
 }
 
-export function createSetOptionstOp(simpleOperation: SimpleSetOptionsOp): SetOptionsOp {
-  if (simpleOperation.homeDomain !== undefined && !String32.isValid(simpleOperation.homeDomain)) {
+export function createSetOptionstOp(simpleOperation: SimpleSetOptionsOp): xdr.SetOptionsOp {
+  if (simpleOperation.homeDomain !== undefined && !xdr.String32.isValid(simpleOperation.homeDomain)) {
     throw new Error(`homeDomain invalid or too long – only 32 bytes allowed`);
   }
 

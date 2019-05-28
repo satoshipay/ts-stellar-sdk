@@ -1,4 +1,4 @@
-import { CreateAccountOp } from "ts-stellar-xdr";
+import { xdr } from "ts-stellar-xdr";
 
 import { createAccountId } from "../simpleTypes/accountId";
 import { convert } from "../operation";
@@ -11,7 +11,7 @@ export interface SimpleCreateAccountOp {
   startingBalanceStroops: SimpleInt64;
 }
 
-export function createCreateAccountOp(simpleOperation: SimpleCreateAccountOp): CreateAccountOp {
+export function createCreateAccountOp(simpleOperation: SimpleCreateAccountOp): xdr.CreateAccountOp {
   return {
     destination: convert(simpleOperation, createAccountId, "destination"),
     startingBalance: convert(simpleOperation, createPositiveInt64, "startingBalanceStroops")

@@ -1,4 +1,4 @@
-import { PathPaymentOp } from "ts-stellar-xdr";
+import { xdr } from "ts-stellar-xdr";
 
 import { SimpleAsset, createAsset } from "../simpleTypes/asset";
 import { convert } from "../operation";
@@ -16,7 +16,7 @@ export interface SimplePathPaymentOp {
   path?: SimpleAsset[];
 }
 
-export function createPathPaymentOp(simpleOperation: SimplePathPaymentOp): PathPaymentOp {
+export function createPathPaymentOp(simpleOperation: SimplePathPaymentOp): xdr.PathPaymentOp {
   const path = (simpleOperation.path || []).map((simpleAsset, index) => {
     try {
       return createAsset(simpleAsset);

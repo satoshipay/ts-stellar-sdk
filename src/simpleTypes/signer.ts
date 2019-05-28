@@ -1,4 +1,4 @@
-import { Signer, SignerKey } from "ts-stellar-xdr";
+import { xdr } from "ts-stellar-xdr";
 import { base32ToBinary } from "../utils/base32";
 import { hexToBinary } from "../utils/hex";
 import { createWeight } from "./weight";
@@ -20,8 +20,8 @@ export type SimpleSigner =
       weight: number;
     };
 
-export function createSigner(simpleSigner: SimpleSigner): Signer {
-  let key: SignerKey;
+export function createSigner(simpleSigner: SimpleSigner): xdr.Signer {
+  let key: xdr.SignerKey;
 
   switch (simpleSigner.type) {
     case "ed25519":

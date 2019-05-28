@@ -1,4 +1,4 @@
-import { Price } from "ts-stellar-xdr";
+import { xdr } from "ts-stellar-xdr";
 
 import { MAX_INT32, approximateAsFraction } from "../utils/fractions";
 
@@ -13,7 +13,7 @@ function isInvalidPositiveNumber(number: number) {
   return number <= 0 || number > MAX_INT32 || !isFinite(number) || isNaN(number);
 }
 
-export function createPrice(price: SimplePrice): Price {
+export function createPrice(price: SimplePrice): xdr.Price {
   if (typeof price === "object") {
     if (isInvalidPositiveNumber(price.n) || isInvalidPositiveNumber(price.d)) {
       throw new Error(`Number must be between 0 (exclusive) and ${MAX_INT32}`);

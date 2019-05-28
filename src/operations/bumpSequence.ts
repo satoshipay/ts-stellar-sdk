@@ -1,4 +1,5 @@
-import { BumpSequenceOp } from "ts-stellar-xdr";
+import { xdr } from "ts-stellar-xdr";
+
 import { createNonNegativeInt64, SimpleInt64 } from "../simpleTypes/int64";
 import { convert } from "../operation";
 
@@ -8,7 +9,7 @@ export interface SimpleBumpSequenceOp {
   bumpTo: SimpleInt64;
 }
 
-export function createBumpSequenceOp(simpleOperation: SimpleBumpSequenceOp): BumpSequenceOp {
+export function createBumpSequenceOp(simpleOperation: SimpleBumpSequenceOp): xdr.BumpSequenceOp {
   return {
     bumpTo: convert(simpleOperation, createNonNegativeInt64, "bumpTo")
   };

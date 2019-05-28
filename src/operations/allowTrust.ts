@@ -1,6 +1,6 @@
 import { xdr } from "ts-stellar-xdr";
 
-import { convert } from "../operation";
+import { convert } from "../utils/conversion";
 import { createAccountId, simplifyAccountId } from "../simpleTypes/accountId";
 import { createAllowTrustOpAsset, simplifyAllowTrustOpAsset } from "../simpleTypes/asset";
 

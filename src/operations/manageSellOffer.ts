@@ -1,7 +1,7 @@
 import { xdr } from "ts-stellar-xdr";
 
 import { SimpleAsset, createAsset, simplifyAsset } from "../simpleTypes/asset";
-import { convert } from "../operation";
+import { convert } from "../utils/conversion";
 import { SimpleInt64, createNonNegativeInt64, createInt64, simplifyInt64 } from "../simpleTypes/int64";
 import { SimplePrice, createPrice, simplifyPrice } from "../simpleTypes/price";
 

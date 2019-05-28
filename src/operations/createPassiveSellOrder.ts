@@ -3,7 +3,7 @@ import { xdr } from "ts-stellar-xdr";
 import { SimpleAsset, createAsset, simplifyAsset } from "../simpleTypes/asset";
 import { SimpleInt64, createPositiveInt64, simplifyInt64 } from "../simpleTypes/int64";
 import { SimplePrice, createPrice, simplifyPrice } from "../simpleTypes/price";
-import { convert } from "../operation";
+import { convert } from "../utils/conversion";
 
 export interface SimpleCreatePassiveSellOfferOp {
   type: "createPassiveSellOffer";

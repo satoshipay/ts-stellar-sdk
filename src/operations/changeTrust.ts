@@ -2,7 +2,7 @@ import { xdr, int64 } from "ts-stellar-xdr";
 
 import { SimpleAsset, createAsset, simplifyAsset } from "../simpleTypes/asset";
 import { SimpleInt64, createNonNegativeInt64, simplifyInt64 } from "../simpleTypes/int64";
-import { convert } from "../operation";
+import { convert } from "../utils/conversion";
 
 export interface SimpleChangeTrustOp {
   type: "changeTrust";

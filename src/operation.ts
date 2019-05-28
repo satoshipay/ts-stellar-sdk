@@ -23,6 +23,7 @@ import { SimpleAllowTrustOp, createAllowTrustOp, simplifyAllowTrustOp } from "./
 import { SimpleBumpSequenceOp, createBumpSequenceOp, simplifyBumpSequenceOp } from "./operations/bumpSequence";
 import { SimpleManageDataOp, createManageDataOp, simplifyManageDataOp } from "./operations/manageData";
 import { SimpleManageBuyOfferOp, createManageBuyOfferOp, simplifyManageBuyOfferOp } from "./operations/manageBuyOffer";
+import { convertOptional } from "./utils/conversion";
 
 export type SimpleOperation =
   | SimpleCreateAccountOp
@@ -187,26 +188,5 @@ export function simplifyOperation(operation: xdr.Operation): SimpleOperation {
 
     default:
       throw new Error(`Unknown operation type`);
-  }
-}
-
-export function convert<N extends string, T, S>(object: { [A in N]: S }, converter: (value: S) => T, name: N) {
-  try {
-    return converter(object[name]);
-  } catch (error) {
-    throw new Error(`${name} is invalid: ${error.message}`);
-  }
-}
-
-export function convertOptional<N extends string, T, S>(object: { [A in N]?: S }, converter: (value: S) => T, name: N) {
-  try {
-    const value: S | undefined = object[name];
-    if (typeof value === "undefined") {
-      return undefined;
-    }
-
-    return converter(value);
-  } catch (error) {
-    throw new Error(`${name} is invalid: ${error.message}`);
   }
 }

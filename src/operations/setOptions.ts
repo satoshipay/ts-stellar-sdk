@@ -1,7 +1,7 @@
 import { xdr } from "ts-stellar-xdr";
 
 import { SimpleSigner, createSigner, simplifySigner } from "../simpleTypes/signer";
-import { convertOptional } from "../operation";
+import { convertOptional } from "../utils/conversion";
 import { createAccountId, simplifyAccountId } from "../simpleTypes/accountId";
 import { createNonnegativeNumber, createWeight } from "../simpleTypes/weight";
 

@@ -1,7 +1,7 @@
 import { xdr } from "ts-stellar-xdr";
 
 import { createAccountId, simplifyAccountId } from "../simpleTypes/accountId";
-import { convert } from "../operation";
+import { convert } from "../utils/conversion";
 
 export interface SimpleAccountMergeOp {
   type: "accountMerge";

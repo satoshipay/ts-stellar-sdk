@@ -1,7 +1,7 @@
 import { xdr } from "ts-stellar-xdr";
 
 import { createAccountId, simplifyAccountId } from "../simpleTypes/accountId";
-import { convert } from "../operation";
+import { convert } from "../utils/conversion";
 import { SimpleInt64, createPositiveInt64, simplifyInt64 } from "../simpleTypes/int64";
 
 export interface SimpleCreateAccountOp {

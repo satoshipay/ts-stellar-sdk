@@ -1,14 +1,15 @@
 {
   "name": "ts-stellar-sdk",
-  "version": "0.1.0",
-  "description": "",
-  "main": "index.js",
+  "version": "0.1.2",
+  "description": "A TypeScript low level sdk for Stellar",
+  "main": "lib/index.js",
   "scripts": {
-    "build": "rimraf lib && tsc --declaration"
+    "build": "rimraf lib && tsc --declaration",
+    "prepublishOnly": "npm run build"
   },
   "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "author": "SatoshiPay Ltd",
+  "license": "Apache-2.0",
   "dependencies": {
     "base32.js": "^0.1.0",
     "ts-stellar-xdr": "^0.5.2"
@@ -17,7 +18,8 @@
     "husky": "^2.3.0",
     "lint-staged": "^8.1.6",
     "prettier": "^1.17.1",
-    "rimraf": "^2.6.3"
+    "rimraf": "^2.6.3",
+    "typescript": "^3.4.5"
   },
   "husky": {
     "hooks": {
@@ -29,6 +31,10 @@
       "prettier --write",
       "git add"
     ]
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/satoshipay/ts-stellar-sdk.git"
   },
   "prettier": {
     "printWidth": 120,

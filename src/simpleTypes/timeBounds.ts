@@ -14,19 +14,19 @@ function createTimeBound(timeBound: Date | number | undefined): int64.Unsigned {
   return int64.Unsigned.fromNumber(timeBoundNumber);
 }
 
-export function createTimeBounds({ minTime, maxTime }: SimpleTimeBounds): xdr.TimeBounds {
+export function create({ minTime, maxTime }: SimpleTimeBounds): xdr.TimeBounds {
   return {
     minTime: createTimeBound(minTime),
     maxTime: createTimeBound(maxTime)
   };
 }
 
-export function simplifyTimeBounds(timeBounds: xdr.TimeBounds): SimpleTimeBounds {
+export function simplify(timeBounds: xdr.TimeBounds): SimpleTimeBounds {
   const minTime = timeBounds.minTime.toNumber();
   const maxTime = timeBounds.minTime.toNumber();
 
   return {
-    ...(minTime === 0 ? null : { minTime: new Date(minTime * 1000) }),
-    ...(maxTime === 0 ? null : { maxTime: new Date(maxTime * 1000) })
+    minTime: minTime === 0 ? undefined : new Date(minTime * 1000),
+    maxTime: maxTime === 0 ? undefined : new Date(maxTime * 1000)
   };
 }

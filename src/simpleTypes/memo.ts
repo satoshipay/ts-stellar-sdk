@@ -1,12 +1,13 @@
 import { xdr, int64 } from "ts-stellar-xdr";
 import { string } from "ts-stellar-xdr/lib/converters";
+
 import { hexToBinary, binaryToHex } from "../utils/hex";
 
 export type SimpleMemo = undefined | string | number | { type: "hash" | "return"; value: string };
 
 const memoTextConverter = string(28);
 
-export function createMemo(simpleMemo: SimpleMemo): xdr.Memo {
+export function create(simpleMemo: SimpleMemo): xdr.Memo {
   if (simpleMemo) {
     if (typeof simpleMemo === "string") {
       if (!memoTextConverter.isValid(simpleMemo)) {
@@ -44,7 +45,7 @@ export function createMemo(simpleMemo: SimpleMemo): xdr.Memo {
   }
 }
 
-export function simplifyMemo(memo: xdr.Memo): SimpleMemo {
+export function simplify(memo: xdr.Memo): SimpleMemo {
   switch (memo.type) {
     case "memoNone":
       return undefined;

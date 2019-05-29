@@ -1,5 +1,6 @@
-import * as Keypair from "./keypair";
-import * as Operation from "./operation";
-import * as Transaction from "./transaction";
+import * as keypair from "./keypair";
+import * as operation from "./operation";
+import * as network from "./network";
+import * as transaction from "./transaction";
 
-export { Keypair, Transaction, Operation };
+export { keypair, operation, network, transaction };

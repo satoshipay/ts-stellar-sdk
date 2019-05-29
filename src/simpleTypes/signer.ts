@@ -1,7 +1,8 @@
 import { xdr } from "ts-stellar-xdr";
+
 import { base32ToBinary, binaryToBase32 } from "../utils/base32";
 import { hexToBinary, binaryToHex } from "../utils/hex";
-import { createWeight } from "./weight";
+import * as weight from "./weight";
 
 export type SimpleSigner =
   | {
@@ -20,7 +21,7 @@ export type SimpleSigner =
       weight: number;
     };
 
-export function createSigner(simpleSigner: SimpleSigner): xdr.Signer {
+export function create(simpleSigner: SimpleSigner): xdr.Signer {
   let key: xdr.SignerKey;
 
   switch (simpleSigner.type) {
@@ -50,20 +51,20 @@ export function createSigner(simpleSigner: SimpleSigner): xdr.Signer {
     throw new Error(`invalid signer key length (expected: 32; got: ${key.value.byteLength})`);
   }
 
-  let weight;
+  let signerWeight;
   try {
-    weight = createWeight(simpleSigner.weight);
+    signerWeight = weight.validate(simpleSigner.weight);
   } catch (error) {
     throw new Error(`invalid signer weight: ${error.message}`);
   }
 
   return {
     key,
-    weight
+    weight: signerWeight
   };
 }
 
-export function simplifySigner(signer: xdr.Signer): SimpleSigner {
+export function simplify(signer: xdr.Signer): SimpleSigner {
   switch (signer.key.type) {
     case "signerKeyTypeEd25519":
       return {

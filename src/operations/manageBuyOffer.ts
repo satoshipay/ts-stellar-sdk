@@ -1,43 +1,40 @@
 import { xdr } from "ts-stellar-xdr";
 
-import { SimpleAsset, createAsset, simplifyAsset } from "../simpleTypes/asset";
-import { SimpleInt64, createInt64, createNonNegativeInt64, simplifyInt64 } from "../simpleTypes/int64";
-import { SimplePrice, createPrice, simplifyPrice } from "../simpleTypes/price";
+import * as asset from "../simpleTypes/asset";
+import * as int64 from "../simpleTypes/int64";
+import * as price from "../simpleTypes/price";
 import { convert } from "../utils/conversion";
 
 export interface SimpleManageBuyOfferOp {
   type: "manageBuyOffer";
   sourceAccount?: string;
-  selling: SimpleAsset;
-  buying: SimpleAsset;
-  buyAmountStroops: SimpleInt64;
-  price: SimplePrice;
-  offerId?: SimpleInt64;
+  selling: asset.SimpleAsset;
+  buying: asset.SimpleAsset;
+  buyAmountStroops: int64.SimpleInt64;
+  price: price.SimplePrice;
+  offerId?: int64.SimpleInt64;
 }
 
-export function createManageBuyOfferOp(simpleOperation: SimpleManageBuyOfferOp): xdr.ManageBuyOfferOp {
+export function create(simpleOperation: SimpleManageBuyOfferOp): xdr.ManageBuyOfferOp {
   return {
-    selling: convert(simpleOperation, createAsset, "selling"),
-    buying: convert(simpleOperation, createAsset, "buying"),
-    buyAmount: convert(simpleOperation, createNonNegativeInt64, "buyAmountStroops"),
-    price: convert(simpleOperation, createPrice, "price"),
-    offerId: convert({ offerId: simpleOperation.offerId || 0 }, createInt64, "offerId")
+    selling: convert(simpleOperation, asset.create, "selling"),
+    buying: convert(simpleOperation, asset.create, "buying"),
+    buyAmount: convert(simpleOperation, int64.createNonnegative, "buyAmountStroops"),
+    price: convert(simpleOperation, price.create, "price"),
+    offerId: convert({ offerId: simpleOperation.offerId || 0 }, int64.create, "offerId")
   };
 }
 
-export function simplifyManageBuyOfferOp(
-  operation: xdr.ManageBuyOfferOp,
-  sourceAccount?: string
-): SimpleManageBuyOfferOp {
-  const offerId = simplifyInt64(operation.offerId);
+export function simplify(operation: xdr.ManageBuyOfferOp, sourceAccount?: string): SimpleManageBuyOfferOp {
+  const offerId = int64.simplify(operation.offerId);
 
   return {
     type: "manageBuyOffer",
-    ...(sourceAccount === undefined ? null : { sourceAccount }),
-    selling: simplifyAsset(operation.selling),
-    buying: simplifyAsset(operation.buying),
-    buyAmountStroops: simplifyInt64(operation.buyAmount),
-    price: simplifyPrice(operation.price),
-    ...(offerId === 0 ? null : { offerId })
+    sourceAccount,
+    selling: asset.simplify(operation.selling),
+    buying: asset.simplify(operation.buying),
+    buyAmountStroops: int64.simplify(operation.buyAmount),
+    price: price.simplify(operation.price),
+    offerId
   };
 }

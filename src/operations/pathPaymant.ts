@@ -1,51 +1,51 @@
 import { xdr } from "ts-stellar-xdr";
 
-import { SimpleAsset, createAsset, simplifyAsset } from "../simpleTypes/asset";
+import * as asset from "../simpleTypes/asset";
+import * as accountId from "../simpleTypes/accountId";
+import * as int64 from "../simpleTypes/int64";
 import { convert } from "../utils/conversion";
-import { createAccountId, simplifyAccountId } from "../simpleTypes/accountId";
-import { SimpleInt64, createPositiveInt64, simplifyInt64 } from "../simpleTypes/int64";
 
 export interface SimplePathPaymentOp {
   type: "pathPayment";
   sourceAccount?: string;
-  sendAsset: SimpleAsset;
-  sendMaxStroops: SimpleInt64;
+  sendAsset: asset.SimpleAsset;
+  sendMaxStroops: int64.SimpleInt64;
   destination: string;
-  destAsset: SimpleAsset;
-  destAmountStroops: SimpleInt64;
-  path?: SimpleAsset[];
+  destAsset: asset.SimpleAsset;
+  destAmountStroops: int64.SimpleInt64;
+  path?: asset.SimpleAsset[];
 }
 
-export function createPathPaymentOp(simpleOperation: SimplePathPaymentOp): xdr.PathPaymentOp {
+export function create(simpleOperation: SimplePathPaymentOp): xdr.PathPaymentOp {
   const path = (simpleOperation.path || []).map((simpleAsset, index) => {
     try {
-      return createAsset(simpleAsset);
+      return asset.create(simpleAsset);
     } catch (error) {
       throw new Error(`path contains invalid asset at position ${index}: ${error.message}`);
     }
   });
 
   return {
-    sendAsset: convert(simpleOperation, createAsset, "sendAsset"),
-    sendMax: convert(simpleOperation, createPositiveInt64, "sendMaxStroops"),
-    destination: convert(simpleOperation, createAccountId, "destination"),
-    destAsset: convert(simpleOperation, createAsset, "destAsset"),
-    destAmount: convert(simpleOperation, createPositiveInt64, "destAmountStroops"),
+    sendAsset: convert(simpleOperation, asset.create, "sendAsset"),
+    sendMax: convert(simpleOperation, int64.createPositive, "sendMaxStroops"),
+    destination: convert(simpleOperation, accountId.create, "destination"),
+    destAsset: convert(simpleOperation, asset.create, "destAsset"),
+    destAmount: convert(simpleOperation, int64.createPositive, "destAmountStroops"),
     path
   };
 }
 
-export function simplifyPathPaymentOp(operation: xdr.PathPaymentOp, sourceAccount?: string): SimplePathPaymentOp {
-  const path = operation.path.map(simplifyAsset);
+export function simplify(operation: xdr.PathPaymentOp, sourceAccount?: string): SimplePathPaymentOp {
+  const path = operation.path.map(asset.simplify);
 
   return {
     type: "pathPayment",
-    ...(sourceAccount === undefined ? null : { sourceAccount }),
-    sendAsset: simplifyAsset(operation.sendAsset),
-    sendMaxStroops: simplifyInt64(operation.sendMax),
-    destination: simplifyAccountId(operation.destination),
-    destAsset: simplifyAsset(operation.destAsset),
-    destAmountStroops: simplifyInt64(operation.destAmount),
-    ...(path.length === 0 ? null : { path })
+    sourceAccount,
+    sendAsset: asset.simplify(operation.sendAsset),
+    sendMaxStroops: int64.simplify(operation.sendMax),
+    destination: accountId.simplify(operation.destination),
+    destAsset: asset.simplify(operation.destAsset),
+    destAmountStroops: int64.simplify(operation.destAmount),
+    path
   };
 }

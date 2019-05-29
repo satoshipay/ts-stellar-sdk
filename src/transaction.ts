@@ -2,10 +2,10 @@ import sha256 from "fast-sha256";
 import { xdr, int64 } from "ts-stellar-xdr";
 import base64 from "base64-js";
 
-import { createOperation, SimpleOperation, simplifyOperation } from "./operation";
-import { createAccountId, simplifyAccountId } from "./simpleTypes/accountId";
-import { SimpleTimeBounds, createTimeBounds, simplifyTimeBounds } from "./simpleTypes/timeBounds";
-import { createMemo, simplifyMemo, SimpleMemo } from "./simpleTypes/memo";
+import * as operation from "./operation";
+import * as accountId from "./simpleTypes/accountId";
+import * as timeBounds from "./simpleTypes/timeBounds";
+import * as memo from "./simpleTypes/memo";
 import {
   Keypair,
   getSignatureHint,
@@ -14,20 +14,20 @@ import {
   verifySignature
 } from "./keypair";
 import { Network, getNetworkId } from "./network";
+import { BASE_FEE } from "./config/config";
 
-export const BASE_FEE = 100;
 const MAX_INT32 = 0x7fffffff;
 
 export interface SimpleTransaction {
   sourceAccount: string;
   fee?: number;
   seqNum: int64.Signed;
-  timeBounds?: SimpleTimeBounds;
-  memo?: SimpleMemo;
-  operations: Array<SimpleOperation>;
+  timeBounds?: timeBounds.SimpleTimeBounds;
+  memo?: memo.SimpleMemo;
+  operations: Array<operation.SimpleOperation>;
 }
 
-export function createTransaction(simpleTransaction: SimpleTransaction): xdr.Transaction {
+export function create(simpleTransaction: SimpleTransaction): xdr.Transaction {
   if (typeof simpleTransaction.fee === "number") {
     if (
       simpleTransaction.fee < 0 ||
@@ -39,41 +39,36 @@ export function createTransaction(simpleTransaction: SimpleTransaction): xdr.Tra
     }
   }
 
-  const sourceAccount = createAccountId(simpleTransaction.sourceAccount);
-  const fee = simpleTransaction.fee || BASE_FEE;
   const seqNum =
     typeof simpleTransaction.seqNum === "number"
       ? int64.Signed.fromNumber(simpleTransaction.seqNum)
       : simpleTransaction.seqNum;
-  const timeBounds = simpleTransaction.timeBounds && createTimeBounds(simpleTransaction.timeBounds);
-  const memo = createMemo(simpleTransaction.memo);
-  const operations = simpleTransaction.operations.map(createOperation);
 
   return {
-    sourceAccount,
-    fee,
+    sourceAccount: accountId.create(simpleTransaction.sourceAccount),
+    fee: simpleTransaction.fee || BASE_FEE,
     seqNum,
-    timeBounds,
-    memo,
-    operations,
+    timeBounds: simpleTransaction.timeBounds && timeBounds.create(simpleTransaction.timeBounds),
+    memo: memo.create(simpleTransaction.memo),
+    operations: simpleTransaction.operations.map(operation.create),
     ext: { type: 0 }
   };
 }
 
-export function simplifyTransaction(transaction: xdr.Transaction): SimpleTransaction {
+export function simplify(transaction: xdr.Transaction): SimpleTransaction {
   return {
-    sourceAccount: simplifyAccountId(transaction.sourceAccount),
+    sourceAccount: accountId.simplify(transaction.sourceAccount),
     fee: transaction.fee,
     seqNum: transaction.seqNum,
-    ...(transaction.timeBounds ? { timeBounds: simplifyTimeBounds(transaction.timeBounds) } : null),
-    ...(transaction.memo ? { memo: simplifyMemo(transaction.memo) } : null),
-    operations: transaction.operations.map(simplifyOperation)
+    timeBounds: transaction.timeBounds && timeBounds.simplify(transaction.timeBounds),
+    memo: memo.simplify(transaction.memo),
+    operations: transaction.operations.map(operation.simplify)
   };
 }
 
 export function createTransactionEnvelope(simpleTransaction: SimpleTransaction): xdr.TransactionEnvelope {
   return {
-    tx: createTransaction(simpleTransaction),
+    tx: create(simpleTransaction),
     signatures: []
   };
 }

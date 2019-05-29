@@ -1,35 +1,35 @@
 import { xdr, int64 } from "ts-stellar-xdr";
 
-import { SimpleAsset, createAsset, simplifyAsset } from "../simpleTypes/asset";
-import { SimpleInt64, createNonNegativeInt64, simplifyInt64 } from "../simpleTypes/int64";
+import * as asset from "../simpleTypes/asset";
+import * as simpleInt64 from "../simpleTypes/int64";
 import { convert } from "../utils/conversion";
 
 export interface SimpleChangeTrustOp {
   type: "changeTrust";
   sourceAccount?: string;
-  line: SimpleAsset;
-  limitStroops?: SimpleInt64;
+  line: asset.SimpleAsset;
+  limitStroops?: simpleInt64.SimpleInt64;
 }
 
-export function createChangeTrustOp(simpleOperation: SimpleChangeTrustOp): xdr.ChangeTrustOp {
+export function create(simpleOperation: SimpleChangeTrustOp): xdr.ChangeTrustOp {
   let limit: int64.Signed;
   if (simpleOperation.limitStroops) {
-    limit = convert({ limitStroops: simpleOperation.limitStroops }, createNonNegativeInt64, "limitStroops");
+    limit = convert({ limitStroops: simpleOperation.limitStroops }, simpleInt64.createNonnegative, "limitStroops");
   } else {
     limit = int64.Signed.maxValue;
   }
 
   return {
-    line: convert(simpleOperation, createAsset, "line"),
+    line: convert(simpleOperation, asset.create, "line"),
     limit
   };
 }
 
-export function simplifyChangeTrustOp(operation: xdr.ChangeTrustOp, sourceAccount?: string): SimpleChangeTrustOp {
+export function simplify(operation: xdr.ChangeTrustOp, sourceAccount?: string): SimpleChangeTrustOp {
   return {
     type: "changeTrust",
-    ...(sourceAccount === undefined ? null : { sourceAccount }),
-    line: simplifyAsset(operation.line),
-    ...(operation.limit.equals(int64.Signed.maxValue) ? null : { limitStroops: simplifyInt64(operation.limit) })
+    sourceAccount,
+    line: asset.simplify(operation.line),
+    limitStroops: operation.limit.equals(int64.Signed.maxValue) ? undefined : simpleInt64.simplify(operation.limit)
   };
 }

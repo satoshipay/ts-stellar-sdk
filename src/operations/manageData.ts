@@ -9,7 +9,7 @@ export interface SimpleManageDataOp {
   dataValue?: ArrayBuffer | string;
 }
 
-export function createManageDataOp(simpleOperation: SimpleManageDataOp): xdr.ManageDataOp {
+export function create(simpleOperation: SimpleManageDataOp): xdr.ManageDataOp {
   if (!xdr.String64.isValid(simpleOperation.dataName)) {
     throw new Error(`homeDomain invalid or too long – only 64 bytes allowed`);
   }
@@ -29,11 +29,11 @@ export function createManageDataOp(simpleOperation: SimpleManageDataOp): xdr.Man
   };
 }
 
-export function simplifyManageDataOp(operation: xdr.ManageDataOp, sourceAccount?: string): SimpleManageDataOp {
+export function simplify(operation: xdr.ManageDataOp, sourceAccount?: string): SimpleManageDataOp {
   return {
     type: "manageDatum",
-    ...(sourceAccount === undefined ? null : { sourceAccount }),
+    sourceAccount,
     dataName: operation.dataName,
-    ...(operation.dataValue ? { dataValue: binaryToString(operation.dataValue) } : null)
+    dataValue: operation.dataValue && binaryToString(operation.dataValue)
   };
 }

@@ -3,9 +3,9 @@ export interface SimpleInflationOp {
   sourceAccount?: string;
 }
 
-export function simplifyInflationOp(sourceAccount?: string): SimpleInflationOp {
+export function simplify(sourceAccount?: string): SimpleInflationOp {
   return {
     type: "inflation",
-    ...(sourceAccount === undefined ? null : { sourceAccount })
+    sourceAccount
   };
 }

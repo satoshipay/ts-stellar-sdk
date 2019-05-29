@@ -1,32 +1,32 @@
 import { xdr } from "ts-stellar-xdr";
 
-import { createAccountId, simplifyAccountId } from "../simpleTypes/accountId";
+import * as accountId from "../simpleTypes/accountId";
+import * as asset from "../simpleTypes/asset";
+import * as int64 from "../simpleTypes/int64";
 import { convert } from "../utils/conversion";
-import { SimpleAsset, createAsset, simplifyAsset } from "../simpleTypes/asset";
-import { SimpleInt64, createPositiveInt64, simplifyInt64 } from "../simpleTypes/int64";
 
 export interface SimplePaymentOp {
   type: "payment";
   sourceAccount?: string;
   destination: string;
-  asset: SimpleAsset;
-  amountStroops: SimpleInt64;
+  asset: asset.SimpleAsset;
+  amountStroops: int64.SimpleInt64;
 }
 
-export function createPaymentOp(simpleOperation: SimplePaymentOp): xdr.PaymentOp {
+export function create(simpleOperation: SimplePaymentOp): xdr.PaymentOp {
   return {
-    destination: convert(simpleOperation, createAccountId, "destination"),
-    asset: convert(simpleOperation, createAsset, "asset"),
-    amount: convert(simpleOperation, createPositiveInt64, "amountStroops")
+    destination: convert(simpleOperation, accountId.create, "destination"),
+    asset: convert(simpleOperation, asset.create, "asset"),
+    amount: convert(simpleOperation, int64.createPositive, "amountStroops")
   };
 }
 
-export function simplifyPaymentOp(operation: xdr.PaymentOp, sourceAccount?: string): SimplePaymentOp {
+export function simplify(operation: xdr.PaymentOp, sourceAccount?: string): SimplePaymentOp {
   return {
     type: "payment",
-    ...(sourceAccount === undefined ? null : { sourceAccount }),
-    destination: simplifyAccountId(operation.destination),
-    asset: simplifyAsset(operation.asset),
-    amountStroops: simplifyInt64(operation.amount)
+    sourceAccount,
+    destination: accountId.simplify(operation.destination),
+    asset: asset.simplify(operation.asset),
+    amountStroops: int64.simplify(operation.amount)
   };
 }

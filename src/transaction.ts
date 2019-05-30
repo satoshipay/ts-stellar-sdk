@@ -1,7 +1,7 @@
-import sha256 from "fast-sha256";
 import { xdr, int64 } from "ts-stellar-xdr";
-import base64 from "base64-js";
 
+import { sha256 } from "./utils/sha256.node";
+import { fromBinary, toBinary } from "./utils/base64.node";
 import * as operation from "./operation";
 import * as accountId from "./simpleTypes/accountId";
 import * as timeBounds from "./simpleTypes/timeBounds";
@@ -13,7 +13,7 @@ import {
   HalfKeypair,
   verifySignature
 } from "./keypair";
-import { Network, getNetworkId } from "./network";
+import { Network } from "./network";
 import { BASE_FEE } from "./config/config";
 
 const MAX_INT32 = 0x7fffffff;
@@ -73,8 +73,8 @@ export function createTransactionEnvelope(simpleTransaction: SimpleTransaction):
   };
 }
 
-export function sign(transactionEnvelope: xdr.TransactionEnvelope, network: Network, ...keypairs: Keypair[]) {
-  const transactionHash = getHash(transactionEnvelope.tx, network);
+export async function sign(transactionEnvelope: xdr.TransactionEnvelope, network: Network, ...keypairs: Keypair[]) {
+  const transactionHash = await getHash(transactionEnvelope.tx, network);
 
   keypairs.forEach(keypair => {
     transactionEnvelope.signatures.push({
@@ -84,19 +84,23 @@ export function sign(transactionEnvelope: xdr.TransactionEnvelope, network: Netw
   });
 }
 
-export function createSignature(transaction: xdr.Transaction, network: Network, keypair: Keypair): string {
-  const signature = createRawSignature(keypair, getHash(transaction, network));
-  return base64.fromByteArray(new Uint8Array(signature));
+export async function createSignature(
+  transaction: xdr.Transaction,
+  network: Network,
+  keypair: Keypair
+): Promise<string> {
+  const signature = createRawSignature(keypair, await getHash(transaction, network));
+  return fromBinary(signature);
 }
 
-export function addSignature(
+export async function addSignature(
   transactionEnvelope: xdr.TransactionEnvelope,
   network: Network,
   signatureBase64: string,
   halfKeypair: HalfKeypair
 ) {
-  const signature = base64.toByteArray(signatureBase64).buffer;
-  const transactionHash = getHash(transactionEnvelope.tx, network);
+  const signature = toBinary(signatureBase64);
+  const transactionHash = await getHash(transactionEnvelope.tx, network);
   if (!verifySignature(halfKeypair, transactionHash, signature)) {
     throw new Error("Invalid signature");
   }
@@ -107,8 +111,8 @@ export function addSignature(
   });
 }
 
-export function getHash(transaction: xdr.Transaction, network: Network): ArrayBuffer {
-  const networkId = getNetworkId(network);
+export async function getHash(transaction: xdr.Transaction, network: Network): Promise<ArrayBuffer> {
+  const networkId = network.networkId;
   const envelopeType = xdr.EnvelopeType.toXdr("envelopeTypeTx");
   const transactionXdr = xdr.Transaction.toXdr(transaction);
 
@@ -117,5 +121,5 @@ export function getHash(transaction: xdr.Transaction, network: Network): ArrayBu
   result.set(new Uint8Array(envelopeType), networkId.byteLength);
   result.set(new Uint8Array(transactionXdr), networkId.byteLength + envelopeType.byteLength);
 
-  return sha256(result).buffer;
+  return sha256(result);
 }

@@ -1,18 +1,25 @@
-import sha256 from "fast-sha256";
 import { stringToBinary } from "./utils/utf8";
+
+import { sha256 } from "./utils/sha256.node";
 
 export type Network = {
   passphrase: string;
+  networkId: ArrayBuffer;
 };
 
-export const publicNetwork: Network = {
-  passphrase: "Public Global Stellar Network ; September 2015"
-};
+export async function createFromPassphrase(passphrase: string) {
+  const networkId = await sha256(stringToBinary(passphrase));
 
-export const testNetwork: Network = {
-  passphrase: "Test SDF Network ; September 2015"
-};
+  return {
+    passphrase,
+    networkId
+  };
+}
 
-export function getNetworkId(network: Network): ArrayBuffer {
-  return sha256(new Uint8Array(stringToBinary(network.passphrase))).buffer;
+export async function createPublicNetwork(): Promise<Network> {
+  return createFromPassphrase("Public Global Stellar Network ; September 2015");
+}
+
+export async function createTestNetwork(): Promise<Network> {
+  return createFromPassphrase("Test SDF Network ; September 2015");
 }

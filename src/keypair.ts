@@ -1,7 +1,7 @@
-import { sign, randomBytes } from "tweetnacl";
 import { xdr } from "ts-stellar-xdr";
 
 import { binaryToBase32, base32ToBinary } from "./utils/base32";
+import { keyPairFromSeed, sign, verify, randomBytes } from "./utils/ed25519.node";
 
 export interface HalfKeypair {
   publicKey: ArrayBuffer;
@@ -30,11 +30,11 @@ export function keypairFromSecret(secret: ArrayBuffer): Keypair {
     throw new Error("Invalid secret");
   }
 
-  const tweetNaclKeypair = sign.keyPair.fromSeed(new Uint8Array(secret));
+  const tweetNaclKeypair = keyPairFromSeed(secret);
 
   return {
-    publicKey: tweetNaclKeypair.publicKey.buffer,
-    secretKey: tweetNaclKeypair.secretKey.buffer,
+    publicKey: tweetNaclKeypair.publicKey,
+    secretKey: tweetNaclKeypair.secretKey,
     secretSeed: secret
   };
 }
@@ -54,7 +54,7 @@ export function halfKeypairFromPublic(publicKey: ArrayBuffer): HalfKeypair {
 
 export function createRandomKeypair(): Keypair {
   const randomSeed = randomBytes(32);
-  return keypairFromSecret(randomSeed.buffer);
+  return keypairFromSecret(randomSeed);
 }
 
 export function getSignatureHint(halfKeypair: HalfKeypair) {
@@ -67,9 +67,9 @@ export function getSignatureHint(halfKeypair: HalfKeypair) {
 }
 
 export function createSignature(keypair: Keypair, data: ArrayBuffer): ArrayBuffer {
-  return sign.detached(new Uint8Array(data), new Uint8Array(keypair.secretKey)).buffer;
+  return sign(data, keypair.secretKey);
 }
 
 export function verifySignature(halfKeypair: HalfKeypair, data: ArrayBuffer, signature: ArrayBuffer): boolean {
-  return sign.detached.verify(new Uint8Array(data), new Uint8Array(signature), new Uint8Array(halfKeypair.publicKey));
+  return verify(data, signature, halfKeypair.publicKey);
 }

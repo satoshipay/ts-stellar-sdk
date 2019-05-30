@@ -2,74 +2,77 @@ import { xdr } from "ts-stellar-xdr";
 
 import { binaryToBase32, base32ToBinary } from "./utils/base32";
 import { keyPairFromSeed, sign, verify, randomBytes } from "./utils/ed25519.node";
+import { Network } from "./network";
 
-export interface HalfKeypair {
-  publicKey: ArrayBuffer;
-}
+export class PublicKey {
+  public publicKey: ArrayBuffer;
 
-export type Keypair = HalfKeypair & {
-  secretKey: ArrayBuffer;
-  secretSeed: ArrayBuffer;
-};
+  constructor(publicKey: ArrayBuffer) {
+    if (publicKey.byteLength !== 32) {
+      throw new Error("Invalid public key");
+    }
 
-export function getPublicKeyString(halfKeypair: HalfKeypair) {
-  return binaryToBase32("ed25519PublicKey", halfKeypair.publicKey);
-}
-
-export function getSecretString(keypair: Keypair) {
-  return binaryToBase32("ed25519SecretSeed", keypair.secretSeed);
-}
-
-export function keypairFromSecretString(secretString: string): Keypair {
-  const secret = base32ToBinary("ed25519SecretSeed", secretString);
-  return keypairFromSecret(secret);
-}
-
-export function keypairFromSecret(secret: ArrayBuffer): Keypair {
-  if (secret.byteLength !== 32) {
-    throw new Error("Invalid secret");
+    this.publicKey = publicKey;
   }
 
-  const tweetNaclKeypair = keyPairFromSeed(secret);
-
-  return {
-    publicKey: tweetNaclKeypair.publicKey,
-    secretKey: tweetNaclKeypair.secretKey,
-    secretSeed: secret
-  };
-}
-
-export function halfKeypairFromPublicString(publicString: string): HalfKeypair {
-  const publicKey = base32ToBinary("ed25519PublicKey", publicString);
-  return halfKeypairFromPublic(publicKey);
-}
-
-export function halfKeypairFromPublic(publicKey: ArrayBuffer): HalfKeypair {
-  if (publicKey.byteLength !== 32) {
-    throw new Error("Invalid public key");
+  static fromPublicString(publicString: string): PublicKey {
+    const publicKey = base32ToBinary("ed25519PublicKey", publicString);
+    return new this(publicKey);
   }
 
-  return { publicKey };
+  getPublicKeyString() {
+    return binaryToBase32("ed25519PublicKey", this.publicKey);
+  }
+
+  getSignatureHint(): ArrayBuffer {
+    const accountIdXdr = xdr.AccountId.toXdr({
+      type: "publicKeyTypeEd25519",
+      value: this.publicKey
+    });
+
+    return accountIdXdr.slice(accountIdXdr.byteLength - 4);
+  }
+
+  verifySignature(data: ArrayBuffer, signature: ArrayBuffer): boolean {
+    return verify(data, signature, this.publicKey);
+  }
 }
 
-export function createRandomKeypair(): Keypair {
-  const randomSeed = randomBytes(32);
-  return keypairFromSecret(randomSeed);
-}
+export class Keypair extends PublicKey {
+  public secretKey: ArrayBuffer;
+  public secretSeed: ArrayBuffer;
 
-export function getSignatureHint(halfKeypair: HalfKeypair) {
-  const accountIdXdr = xdr.AccountId.toXdr({
-    type: "publicKeyTypeEd25519",
-    value: halfKeypair.publicKey
-  });
+  constructor(secret: ArrayBuffer) {
+    if (secret.byteLength !== 32) {
+      throw new Error("Invalid secret");
+    }
 
-  return accountIdXdr.slice(accountIdXdr.byteLength - 4);
-}
+    const keypair = keyPairFromSeed(secret);
 
-export function createSignature(keypair: Keypair, data: ArrayBuffer): ArrayBuffer {
-  return sign(data, keypair.secretKey);
-}
+    super(keypair.publicKey);
+    this.secretKey = keypair.secretKey;
+    this.secretSeed = secret;
+  }
 
-export function verifySignature(halfKeypair: HalfKeypair, data: ArrayBuffer, signature: ArrayBuffer): boolean {
-  return verify(data, signature, halfKeypair.publicKey);
+  static fromSecretString(secretString: string): Keypair {
+    const secret = base32ToBinary("ed25519SecretSeed", secretString);
+    return new this(secret);
+  }
+
+  static createRandomKeypair(): Keypair {
+    const randomSeed = randomBytes(32);
+    return new this(randomSeed);
+  }
+
+  static createNetworkMasterKeyPair(network: Network): Keypair {
+    return new this(network.id);
+  }
+
+  getSecretString() {
+    return binaryToBase32("ed25519SecretSeed", this.secretSeed);
+  }
+
+  createSignature(data: ArrayBuffer): ArrayBuffer {
+    return sign(data, this.secretKey);
+  }
 }

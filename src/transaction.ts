@@ -6,25 +6,26 @@ import * as operation from "./operation";
 import * as accountId from "./simpleTypes/accountId";
 import * as timeBounds from "./simpleTypes/timeBounds";
 import * as memo from "./simpleTypes/memo";
-import {
-  Keypair,
-  getSignatureHint,
-  createSignature as createRawSignature,
-  HalfKeypair,
-  verifySignature
-} from "./keypair";
+import { Keypair, PublicKey } from "./keypair";
 import { Network } from "./network";
 import { BASE_FEE } from "./config/config";
+import { hexToBinary } from "./utils/hex";
+import { TransactionSource, incrementSequenceNumber } from "./account";
 
 const MAX_INT32 = 0x7fffffff;
 
-export interface SimpleTransaction {
-  sourceAccount: string;
+export interface SimpleTransactionWithSource {
   fee?: number;
-  seqNum: int64.Signed;
   timeBounds?: timeBounds.SimpleTimeBounds;
   memo?: memo.SimpleMemo;
   operations: Array<operation.SimpleOperation>;
+}
+
+export type SimpleTransaction = SimpleTransactionWithSource & TransactionSource;
+
+export function createFromSourceAccount(simpleTransaction: SimpleTransactionWithSource, source: TransactionSource) {
+  incrementSequenceNumber(source);
+  return create(Object.assign({}, simpleTransaction, source));
 }
 
 export function create(simpleTransaction: SimpleTransaction): xdr.Transaction {
@@ -40,9 +41,9 @@ export function create(simpleTransaction: SimpleTransaction): xdr.Transaction {
   }
 
   const seqNum =
-    typeof simpleTransaction.seqNum === "number"
-      ? int64.Signed.fromNumber(simpleTransaction.seqNum)
-      : simpleTransaction.seqNum;
+    typeof simpleTransaction.sequenceNumber === "number"
+      ? int64.Signed.fromNumber(simpleTransaction.sequenceNumber)
+      : simpleTransaction.sequenceNumber;
 
   return {
     sourceAccount: accountId.create(simpleTransaction.sourceAccount),
@@ -59,7 +60,7 @@ export function simplify(transaction: xdr.Transaction): SimpleTransaction {
   return {
     sourceAccount: accountId.simplify(transaction.sourceAccount),
     fee: transaction.fee,
-    seqNum: transaction.seqNum,
+    sequenceNumber: transaction.seqNum,
     timeBounds: transaction.timeBounds && timeBounds.simplify(transaction.timeBounds),
     memo: memo.simplify(transaction.memo),
     operations: transaction.operations.map(operation.simplify)
@@ -78,9 +79,25 @@ export async function sign(transactionEnvelope: xdr.TransactionEnvelope, network
 
   keypairs.forEach(keypair => {
     transactionEnvelope.signatures.push({
-      hint: getSignatureHint(keypair),
-      signature: createRawSignature(keypair, transactionHash)
+      hint: keypair.getSignatureHint(),
+      signature: keypair.createSignature(transactionHash)
     });
+  });
+}
+
+export async function signHashX(transactionEnvelope: xdr.TransactionEnvelope, preImage: ArrayBuffer | string) {
+  const binaryPreImage = typeof preImage === "string" ? hexToBinary(preImage) : preImage;
+
+  if (binaryPreImage.byteLength > 64) {
+    throw new Error("Preimage must not be longer than 64 bytes");
+  }
+
+  const hash = await sha256(binaryPreImage);
+  const signatureHint = hash.slice(hash.byteLength - 4);
+
+  transactionEnvelope.signatures.push({
+    hint: signatureHint,
+    signature: binaryPreImage
   });
 }
 
@@ -89,7 +106,7 @@ export async function createSignature(
   network: Network,
   keypair: Keypair
 ): Promise<string> {
-  const signature = createRawSignature(keypair, await getHash(transaction, network));
+  const signature = keypair.createSignature(await getHash(transaction, network));
   return fromBinary(signature);
 }
 
@@ -97,22 +114,22 @@ export async function addSignature(
   transactionEnvelope: xdr.TransactionEnvelope,
   network: Network,
   signatureBase64: string,
-  halfKeypair: HalfKeypair
+  publicKey: PublicKey
 ) {
   const signature = toBinary(signatureBase64);
   const transactionHash = await getHash(transactionEnvelope.tx, network);
-  if (!verifySignature(halfKeypair, transactionHash, signature)) {
+  if (!publicKey.verifySignature(transactionHash, signature)) {
     throw new Error("Invalid signature");
   }
 
   transactionEnvelope.signatures.push({
-    hint: getSignatureHint(halfKeypair),
+    hint: publicKey.getSignatureHint(),
     signature
   });
 }
 
 export async function getHash(transaction: xdr.Transaction, network: Network): Promise<ArrayBuffer> {
-  const networkId = network.networkId;
+  const networkId = network.id;
   const envelopeType = xdr.EnvelopeType.toXdr("envelopeTypeTx");
   const transactionXdr = xdr.Transaction.toXdr(transaction);
 

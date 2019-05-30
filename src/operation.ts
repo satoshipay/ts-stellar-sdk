@@ -1,6 +1,8 @@
 import { xdr } from "ts-stellar-xdr";
 
 import * as accountId from "./simpleTypes/accountId";
+import { convertOptional } from "./utils/conversion";
+
 import * as createAccount from "./operations/createAccount";
 import * as payment from "./operations/payment";
 import * as pathPayment from "./operations/pathPaymant";
@@ -14,7 +16,22 @@ import * as allowTrust from "./operations/allowTrust";
 import * as bumpSequence from "./operations/bumpSequence";
 import * as manageData from "./operations/manageData";
 import * as manageBuyOffer from "./operations/manageBuyOffer";
-import { convertOptional } from "./utils/conversion";
+
+export {
+  createAccount,
+  payment,
+  pathPayment,
+  manageSellOffer,
+  createPassiveSellOffer,
+  changeTrust,
+  setOption,
+  accountMerge,
+  inflation,
+  allowTrust,
+  bumpSequence,
+  manageData,
+  manageBuyOffer
+};
 
 export type SimpleOperation =
   | createAccount.SimpleCreateAccountOp

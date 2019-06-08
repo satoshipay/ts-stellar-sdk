@@ -1,7 +1,8 @@
+const packageJson = require("../../package.json");
+
 import EventSource from "./sse.node";
 
 import { UrlBuilder } from "./url";
-import { version } from "../../package.json";
 import { UrlQuery } from "../horizon/server";
 
 export function createStream<T>(
@@ -11,7 +12,7 @@ export function createStream<T>(
   onMessage: (message: T) => void
 ) {
   query["X-Client-Name"] = "ts-stellar-sdk";
-  query["X-Client-Version"] = version;
+  query["X-Client-Version"] = packageJson.version;
 
   let eventSource: EventSource | undefined;
 

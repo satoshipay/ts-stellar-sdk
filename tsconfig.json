@@ -12,5 +12,6 @@
     "noUnusedParameters": true,
     "resolveJsonModule": true
   },
-  "include": ["./src/**/*", "./types"]
+  "include": ["./src/**/*", "./types"],
+  "exclude": ["./src/utils/**/*"]
 }

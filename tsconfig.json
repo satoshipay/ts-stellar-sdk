@@ -12,6 +12,13 @@
     "noUnusedParameters": true,
     "resolveJsonModule": true
   },
+  "files": [
+    "./src/utils/base64.browser.ts",
+    "./src/utils/ed25519.browser.ts",
+    "./src/utils/sha256.browser.ts",
+    "./src/utils/sse.browser.ts",
+    "./src/utils/url.browser.ts"
+  ],
   "include": ["./src/**/*", "./types"],
   "exclude": ["./src/utils/**/*"]
 }

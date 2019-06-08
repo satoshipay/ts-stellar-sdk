@@ -1,10 +1,21 @@
 import { HalLinks } from "./general";
 import { AssetResponse } from "./asset";
 
+export interface AccountShowOptions {
+  accountId: string;
+}
+
+export const accountShowProcessor = {
+  options: ({ accountId }: AccountShowOptions) => {
+    return { path: ["accounts", accountId] };
+  },
+  response: (response: AccountResponse) => response
+};
+
 export interface AccountResponse {
   _links: HalLinks<"self" | "transactions" | "operations" | "payments" | "effects" | "offers" | "trades" | "data">;
   id: string;
-  paging_token: string;
+  paging_token?: string;
   account_id: string;
   sequence: string;
   subentry_count: number;
@@ -35,9 +46,6 @@ export interface BalanceResponse extends AssetResponse {
   selling_liabilities: string;
   last_modified_ledger?: number;
   is_authorized?: boolean;
-  asset_type: "native" | "credit_alphanum4" | "credit_alphanum12";
-  asset_code?: string;
-  asset_issuer?: string;
 }
 
 export interface AccountFlagsResponse {

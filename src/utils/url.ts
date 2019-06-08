@@ -1,4 +1,5 @@
 import { Url } from "./url.node";
+import { UrlQuery } from "../horizon/server";
 
 export class UrlBuilder {
   private baseUrl: string;
@@ -19,7 +20,7 @@ export class UrlBuilder {
     return this.url.hostname;
   }
 
-  buildUrl(pathSegments: string[], query?: any): string {
+  buildUrl(pathSegments: string[], query?: UrlQuery): string {
     const newUrl = new Url(this.baseUrl);
     if (pathSegments.length > 0) {
       newUrl.pathname = `${newUrl.pathname}/${pathSegments.join("/")}`;
@@ -27,8 +28,10 @@ export class UrlBuilder {
 
     if (query) {
       Object.keys(query).forEach(key => {
-        const value = query[key].toString();
-        newUrl.searchParams.append(key, value);
+        const value = query[key];
+        if (value !== undefined) {
+          newUrl.searchParams.append(key, value.toString());
+        }
       });
     }
 

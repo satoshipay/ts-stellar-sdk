@@ -1,3 +1,10 @@
+export const operationFeeStatsProcessor = {
+  options: () => {
+    return { path: ["fee_stats"] };
+  },
+  response: (response: FeeResponse) => response
+};
+
 export interface FeeResponse {
   min_accepted_fee: string;
   mode_accepted_fee: string;

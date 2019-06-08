@@ -1,5 +1,23 @@
 import { HalLinks } from "./general";
 
+export const ledgerIndexProcessor = {
+  options: () => {
+    return { path: ["ledgers"] };
+  },
+  response: (response: LedgerResponse) => response
+};
+
+export interface LedgerShowOptions {
+  ledgerId: string;
+}
+
+export const ledgerShowProcessor = {
+  options: ({ ledgerId }: LedgerShowOptions) => {
+    return { path: ["ledgers", ledgerId] };
+  },
+  response: (response: LedgerResponse) => response
+};
+
 export interface LedgerResponse {
   _links: HalLinks<"self" | "transactions" | "operations" | "payments" | "effects">;
   id: string;

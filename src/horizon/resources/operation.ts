@@ -1,6 +1,50 @@
 import { HalLinks, PriceResponse } from "./general";
 import { AssetResponse } from "./asset";
 
+export interface OperationIndexOptions {
+  by?: { idType: "account" | "ledger" | "transaction"; id: string };
+  includeFailed?: boolean;
+}
+
+function createOptionsProcessor(type: "operations" | "payments") {
+  return (options?: OperationIndexOptions) => {
+    let path: string[] = [type];
+
+    const by = options && options.by;
+    if (by) {
+      path = [`${by.idType}s`, by.id, type];
+    }
+
+    let query;
+    if (options) {
+      query = { include_failed: options.includeFailed };
+    }
+
+    return { path, query };
+  };
+}
+
+export const operationIndexProcessor = {
+  options: createOptionsProcessor("operations"),
+  response: (response: OperationResponse) => response
+};
+
+export const paymentsIndexProcessor = {
+  options: createOptionsProcessor("operations"),
+  response: (response: PaymentOperationResponse) => response
+};
+
+export interface OperationShowOptions {
+  id: string;
+}
+
+export const operationShowProcessor = {
+  options: (options: OperationShowOptions) => {
+    return { path: ["operations", options.id] };
+  },
+  response: (response: OperationResponse) => response
+};
+
 export type BaseOperationResponse = {
   _links: HalLinks<"self" | "transaction" | "effects" | "succeeds" | "precedes">;
   id: string;
@@ -9,9 +53,7 @@ export type BaseOperationResponse = {
   source_account: string;
   created_at: string;
   transaction_hash: string;
-} & SpecificOperationResponse;
-
-export type OperationResponse = BaseOperationResponse & SpecificOperationResponse;
+};
 
 export interface OperationOfferResponse {
   amount: string;
@@ -25,22 +67,22 @@ export interface OperationOfferResponse {
   selling_asset_issuer?: string;
 }
 
-export type SpecificOperationResponse =
-  | CreateAccountOpResponse
-  | PaymentOpResponse
-  | PathPaymentOpResponse
-  | ManageSellOfferOpResponse
-  | CreatePassiveSellOfferOpResponse
-  | SetOptionsOpResponse
-  | ChangeTrustOpResponse
-  | AllowTrustOpResponse
-  | AccountMergeOpResponse
-  | InflationOpResponse
-  | ManageDataOpResponse
-  | BumpSequenceOpResponse
-  | ManageBuyOfferOpResponse;
+export type OperationResponse =
+  | CreateAccountOperationResponse
+  | PaymentOperationResponse
+  | PathPaymentOperationResponse
+  | ManageSellOfferOperationResponse
+  | CreatePassiveSellOfferOperationResponse
+  | SetOptionsOperationResponse
+  | ChangeTrustOperationResponse
+  | AllowTrustOperationResponse
+  | AccountMergeOperationResponse
+  | InflationOperationResponse
+  | ManageDataOperationResponse
+  | BumpSequenceOperationResponse
+  | ManageBuyOfferOperationResponse;
 
-export interface CreateAccountOpResponse {
+export interface CreateAccountOperationResponse extends BaseOperationResponse {
   type: "create_account";
   type_i: 0;
   starting_balance: string;
@@ -48,7 +90,7 @@ export interface CreateAccountOpResponse {
   account: string;
 }
 
-export interface PaymentOpResponse extends AssetResponse {
+export interface PaymentOperationResponse extends AssetResponse, BaseOperationResponse {
   type: "payment";
   type_i: 1;
   from: string;
@@ -56,7 +98,7 @@ export interface PaymentOpResponse extends AssetResponse {
   amount: string;
 }
 
-export interface PathPaymentOpResponse {
+export interface PathPaymentOperationResponse extends BaseOperationResponse {
   type: "path_payment";
   type_i: 2;
   path: AssetResponse[];
@@ -67,18 +109,18 @@ export interface PathPaymentOpResponse {
   source_asset_issuer?: string;
 }
 
-export interface ManageSellOfferOpResponse extends OperationOfferResponse {
+export interface ManageSellOfferOperationResponse extends OperationOfferResponse, BaseOperationResponse {
   type: "manage_offer";
   type_i: 3;
   offer_id: number;
 }
 
-export interface CreatePassiveSellOfferOpResponse extends OperationOfferResponse {
+export interface CreatePassiveSellOfferOperationResponse extends OperationOfferResponse, BaseOperationResponse {
   type: "create_passive_offer";
   type_i: 4;
 }
 
-export interface SetOptionsOpResponse {
+export interface SetOptionsOperationResponse extends BaseOperationResponse {
   type: "set_options";
   type_i: 5;
   home_domain?: string;
@@ -95,7 +137,7 @@ export interface SetOptionsOpResponse {
   high_threshold?: number;
 }
 
-export interface ChangeTrustOpResponse extends AssetResponse {
+export interface ChangeTrustOperationResponse extends AssetResponse, BaseOperationResponse {
   type: "change_trust";
   type_i: 6;
   limit: string;
@@ -103,7 +145,7 @@ export interface ChangeTrustOpResponse extends AssetResponse {
   trustor: string;
 }
 
-export interface AllowTrustOpResponse extends AssetResponse {
+export interface AllowTrustOperationResponse extends AssetResponse, BaseOperationResponse {
   type: "allow_trust";
   type_i: 7;
   trustee: string;
@@ -111,32 +153,32 @@ export interface AllowTrustOpResponse extends AssetResponse {
   authorize: boolean;
 }
 
-export interface AccountMergeOpResponse {
+export interface AccountMergeOperationResponse extends BaseOperationResponse {
   type: "account_merge";
   type_i: 8;
   account: string;
   into: string;
 }
 
-export interface InflationOpResponse {
+export interface InflationOperationResponse extends BaseOperationResponse {
   type: "inflation";
   type_i: 9;
 }
 
-export interface ManageDataOpResponse {
+export interface ManageDataOperationResponse extends BaseOperationResponse {
   type: "manage_data";
   type_i: 10;
   name: string;
   value: string;
 }
 
-export interface BumpSequenceOpResponse {
+export interface BumpSequenceOperationResponse extends BaseOperationResponse {
   type: "bump_sequence";
   type_i: 11;
   bump_to: string;
 }
 
-export interface ManageBuyOfferOpResponse extends OperationOfferResponse {
+export interface ManageBuyOfferOperationResponse extends OperationOfferResponse, BaseOperationResponse {
   type: "manage_buy_offer";
   type_i: 12;
   offer_id: number;

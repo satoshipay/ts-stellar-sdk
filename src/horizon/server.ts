@@ -1,74 +1,38 @@
 import fetch from "isomorphic-fetch";
+
 import { UrlBuilder } from "../utils/url";
-import { RootResponse } from "./resources/root";
-import { MetricsResponse } from "./resources/metrics";
+import { createStream } from "../utils/sse";
 import { Paged } from "./resources/general";
-import { LedgerResponse } from "./resources/ledger";
-import { OperationResponse, BaseOperationResponse, PaymentOpResponse } from "./resources/operation";
-import { EffectResponse } from "./resources/effect";
-import { OfferResponse } from "./resources/offer";
-import { TradeResponse } from "./resources/trade";
-import { DataResponse } from "./resources/data";
-import { TradeAggregationsResponse } from "./resources/trageAggregation";
-import { OrderBookResponse } from "./resources/orderbook";
-import { PaymentPathResponse } from "./resources/paymentPath";
-import { AssetStatResponse } from "./resources/asset";
-import { TransactionSuccessResponse } from "./resources/transaction";
 
-export interface OperationIndexOptions {
-  include_failed: boolean;
-}
-
-export interface TradeIndexOptions {
-  base_asset_type?: "native" | "credit_alphanum4" | "credit_alphanum12";
-  base_asset_issuer?: string;
-  base_asset_code?: string;
-  counter_asset_type?: "native" | "credit_alphanum4" | "credit_alphanum12";
-  counter_asset_issuer?: string;
-  counter_asset_code?: string;
-}
-
-export interface TradeAggregationsIndexOptions {
-  base_asset_type: "native" | "credit_alphanum4" | "credit_alphanum12";
-  base_asset_issuer?: string;
-  base_asset_code?: string;
-  counter_asset_type: "native" | "credit_alphanum4" | "credit_alphanum12";
-  counter_asset_issuer?: string;
-  counter_asset_code?: string;
-  offset?: number;
-  resolution?: number;
-  start_time?: number;
-  end_time?: number;
-}
-
-export interface OrderBookShowOptions {
-  selling_asset_type: "native" | "credit_alphanum4" | "credit_alphanum12";
-  selling_asset_issuer?: string;
-  selling_asset_code?: string;
-  buying_asset_type: "native" | "credit_alphanum4" | "credit_alphanum12";
-  buying_asset_issuer?: string;
-  buying_asset_code?: string;
-  limit?: number;
-}
-
-export interface PathIndexOptions {
-  destination_amount: string; // a lumen amount string (not stroops!)
-  destination_account: string;
-  destination_asset_type: "native" | "credit_alphanum4" | "credit_alphanum12";
-  destination_asset_issuer?: string;
-  destination_asset_code?: string;
-}
-
-export interface AssetOptions {
-  asset_issuer: string;
-  asset_code: string;
-}
+import { rootActionProcessor } from "./resources/root";
+import { metricsActionProcessor } from "./resources/metrics";
+import { ledgerIndexProcessor, ledgerShowProcessor } from "./resources/ledger";
+import { operationIndexProcessor, paymentsIndexProcessor, operationShowProcessor } from "./resources/operation";
+import { effectIndexProcessor } from "./resources/effect";
+import { offersByAccountProcessor } from "./resources/offer";
+import { tradeIndexProcessor } from "./resources/trade";
+import { dataShowProcessor, dataShowProcessorSse } from "./resources/data";
+import { tradeAggregateIndexProcessor } from "./resources/trageAggregation";
+import { orderBookShowProcessor } from "./resources/orderbook";
+import { pathIndexProcessor } from "./resources/paymentPath";
+import { assetProcessor } from "./resources/asset";
+import { transactionShowProcessor, transactionIndexProcessor } from "./resources/transaction";
+import { operationFeeStatsProcessor } from "./resources/fee";
+import { friendbotProcessor } from "./resources/friendbot";
+import { accountShowProcessor } from "./resources/account";
 
 export interface PagingOptions {
   cursor?: "now" | number;
   order?: "asc" | "desc";
   limit?: number;
 }
+
+export type UrlQuery = Record<string, string | number | boolean | undefined>;
+export type UrlParameters = { path: string[]; query?: UrlQuery };
+export type FetchProcessor<S, T, U> = {
+  options: (option: S) => UrlParameters;
+  response: (response: T) => U;
+};
 
 export class Horizon {
   public urlBuilder: UrlBuilder;
@@ -77,155 +41,146 @@ export class Horizon {
     this.urlBuilder = new UrlBuilder(baseUrl);
   }
 
-  async getRootInfo() {
-    return this.get<RootResponse>([]);
-  }
+  getRootInfo = this.createStaticGetter(rootActionProcessor);
 
-  async getMetrics() {
-    return this.get<MetricsResponse>(["metrics"]);
-  }
+  getMetrics = this.createStaticGetter(metricsActionProcessor);
 
-  getLedgers() {
-    return this.getPager<LedgerResponse>(["ledgers"]);
-  }
+  getLedger = this.createBasicGetter(ledgerShowProcessor);
+  getLedgers = this.createStaticPagedGetter(ledgerIndexProcessor);
+  streamLedgers = this.createStaticPagingStreamer(ledgerIndexProcessor);
 
-  async getLedger(ledgerSequence: string) {
-    return this.get<LedgerResponse>(["ledgers", ledgerSequence]);
-  }
+  getOperation = this.createBasicGetter(operationShowProcessor);
+  getOperations = this.createOptionalPagedGetter(operationIndexProcessor);
+  streamOperations = this.createOptionalPagingStreamer(operationIndexProcessor);
 
-  async getLedgerTransactions(ledgerSequence: string) {
-    // TODO
-  }
+  getTransaction = this.createBasicGetter(transactionShowProcessor);
+  getTransactions = this.createOptionalPagedGetter(transactionIndexProcessor);
+  streamTransactions = this.createOptionalPagingStreamer(transactionIndexProcessor);
 
-  getLedgerOperations(ledgerSequence: string, options?: OperationIndexOptions) {
-    return this.getPager<OperationResponse>(["ledgers", ledgerSequence, "operations"], options);
-  }
+  getPayments = this.createOptionalPagedGetter(paymentsIndexProcessor);
+  streamPayments = this.createOptionalPagingStreamer(paymentsIndexProcessor);
 
-  getLedgerPayments(ledgerSequence: string, options?: OperationIndexOptions) {
-    return this.getPager<BaseOperationResponse & PaymentOpResponse>(["ledgers", ledgerSequence, "payments"], options);
-  }
+  getEffects = this.createOptionalPagedGetter(effectIndexProcessor);
+  streamEffects = this.createOptionalPagingStreamer(effectIndexProcessor);
 
-  getLedgerEffects(ledgerSequence: string) {
-    return this.getPager<EffectResponse>(["ledgers", ledgerSequence, "effects"]);
-  }
+  getOffers = this.createBasicPagedGetter(offersByAccountProcessor);
+  streamOffers = this.createBasicPagingStreamer(offersByAccountProcessor);
 
-  async getAccount(accountId: string) {
-    // TODO
-  }
+  getTrades = this.createOptionalPagedGetter(tradeIndexProcessor);
+  streamTrades = this.createOptionalPagingStreamer(tradeIndexProcessor);
 
-  async getAccountTransactions(accountId: string) {
-    // TODO
-  }
+  getAccount = this.createBasicGetter(accountShowProcessor);
+  streamAccount = this.createBasicStreamer(accountShowProcessor);
 
-  getAccountOperations(accountId: string, options?: OperationIndexOptions) {
-    return this.getPager<OperationResponse>(["accounts", accountId, "operations"], options);
-  }
+  getAccountData = this.createBasicGetter(dataShowProcessor);
+  streamAccountData = this.createBasicStreamer(dataShowProcessorSse);
 
-  getAccountPayments(accountId: string, options?: OperationIndexOptions) {
-    return this.getPager<BaseOperationResponse & PaymentOpResponse>(["accounts", accountId, "payments"], options);
-  }
+  getTradeAggregations = this.createBasicPagedGetter(tradeAggregateIndexProcessor);
 
-  getAccountEffects(accountId: string) {
-    return this.getPager<EffectResponse>(["accounts", accountId, "effect"]);
-  }
+  getOrderBook = this.createBasicGetter(orderBookShowProcessor);
+  streamOrderBook = this.createBasicStreamer(orderBookShowProcessor);
 
-  getAccountOffers(accountId: string) {
-    return this.getPager<OfferResponse>(["accounts", accountId, "offers"]);
-  }
+  getPaths = this.createBasicPagedGetter(pathIndexProcessor);
 
-  getAccountTrades(accountId: string, options?: TradeIndexOptions) {
-    return this.getPager<TradeResponse>(["accounts", accountId, "trades"], options);
-  }
+  getAssets = this.createOptionalPagedGetter(assetProcessor);
 
-  async getAccountData(accountId: string, key: string): Promise<DataResponse> {
-    return this.get(["accounts", accountId, "data", key]);
-  }
+  getFees = this.createStaticGetter(operationFeeStatsProcessor);
 
-  async getTransactions() {
-    // TODO
-  }
-
-  async getTransaction(transactionId: string) {
-    // TODO
-  }
-
-  getTransactionOperations(transactionId: string, options?: OperationIndexOptions) {
-    return this.getPager<OperationResponse>(["transactions", transactionId, "operations"], options);
-  }
-
-  getTransactionPayments(transactionId: string, options?: OperationIndexOptions) {
-    return this.getPager<BaseOperationResponse & PaymentOpResponse>(
-      ["transactions", transactionId, "payments"],
-      options
-    );
-  }
-
-  getTransactionEffects(transactionId: string) {
-    return this.getPager<EffectResponse>(["transactions", transactionId, "effect"]);
-  }
-
-  getOperations(options?: OperationIndexOptions) {
-    return this.getPager<OperationResponse>(["operations"], options);
-  }
-
-  async getOperation(operationId: string): Promise<OperationResponse> {
-    return this.get(["operations", operationId]);
-  }
-
-  getOperationEffects(operationId: string) {
-    return this.getPager<EffectResponse>(["operations", operationId, "effects"]);
-  }
-
-  getPayments(options?: OperationIndexOptions) {
-    return this.getPager<BaseOperationResponse & PaymentOpResponse>(["payments"], options);
-  }
-
-  getEffects() {
-    return this.getPager<EffectResponse>(["effects"]);
-  }
-
-  getTrades(options?: TradeIndexOptions) {
-    return this.getPager<TradeResponse>(["trades"], options);
-  }
-
-  getTradeAggregations(options: TradeAggregationsIndexOptions) {
-    return this.getPager<TradeAggregationsResponse>(["trades"], options);
-  }
-
-  getOfferTrades(options?: TradeIndexOptions) {
-    return this.getPager<TradeResponse>(["trades"], options);
-  }
-
-  getOrderBook(options?: OrderBookShowOptions) {
-    return this.getPager<OrderBookResponse>(["order_book"], options);
-  }
+  friendbot = this.createBasicGetter(friendbotProcessor);
 
   // TODO post transaction
 
-  getPaths(options: PathIndexOptions) {
-    return this.getPager<PaymentPathResponse>(["paths"], options);
-  }
+  /////////////////////////////////////
 
-  getAssets(options?: AssetOptions) {
-    return this.getPager<AssetStatResponse>(["assets"], options);
-  }
-
-  getFeeStats() {
-    return this.get(["fee_stats"]);
-  }
-
-  friendbot(address: string) {
-    return this.get<TransactionSuccessResponse>(["friendbot"], { addr: address });
-  }
-
-  private async get<S>(pathSegments: string[], query?: any) {
-    const response = await fetch(this.urlBuilder.buildUrl(pathSegments, query));
-    return response.json() as Promise<S>;
-  }
-
-  private getPager<S>(pathSegments: string[], query?: any) {
-    return async (pagingOptions?: PagingOptions) => {
-      return this.get<Paged<S>>(pathSegments, Object.assign({}, query, pagingOptions));
+  private createBasicGetter<S, T, U>(fetchProcessor: FetchProcessor<S, T, U>) {
+    return async (options: S) => {
+      const { path, query } = fetchProcessor.options(options);
+      const response = await fetch(this.urlBuilder.buildUrl(path, query));
+      const parsedResponse = (await response.json()) as T;
+      return fetchProcessor.response(parsedResponse);
     };
+  }
+
+  private createStaticGetter<S, T, U>(fetchProcessor: FetchProcessor<S | undefined, T, U>) {
+    const getter = this.createBasicGetter(fetchProcessor);
+    return () => getter(undefined);
+  }
+
+  private createOptionalGetter<S, T, U>(fetchProcessor: FetchProcessor<S | undefined, T, U>) {
+    const getter = this.createBasicGetter(fetchProcessor);
+    return (options?: S) => getter(options);
+  }
+
+  private createBasicPagedGetter<S, T, U>(fetchProcessor: FetchProcessor<S, T, U>) {
+    return (options: S) => {
+      const { path, query } = fetchProcessor.options(options);
+      const pagedFetchProcessor = {
+        options: (pagingOptions?: PagingOptions) => {
+          return { path, query: Object.assign({}, query, pagingOptions || {}) };
+        },
+        response: (response: Paged<T>) => {
+          const processedResponse: Paged<U> = {
+            _links: response._links,
+            _embedded: {
+              records: response._embedded.records.map(fetchProcessor.response)
+            }
+          };
+          return processedResponse;
+        }
+      };
+      return this.createOptionalGetter(pagedFetchProcessor);
+    };
+  }
+
+  private createStaticPagedGetter<S, T, U>(fetchProcessor: FetchProcessor<S | undefined, T, U>) {
+    const pagedGetter = this.createBasicPagedGetter(fetchProcessor);
+    return pagedGetter(undefined);
+  }
+
+  private createOptionalPagedGetter<S, T, U>(fetchProcessor: FetchProcessor<S | undefined, T, U>) {
+    const pagedGetter = this.createBasicPagedGetter(fetchProcessor);
+    return (options?: S) => pagedGetter(options);
+  }
+
+  private createBasicStreamer<S, T, U>(fetchProcessor: FetchProcessor<S, T, U>) {
+    return (onMessage: (message: U) => void, options: S) => {
+      const { path, query } = fetchProcessor.options(options);
+      return createStream<T>(this.urlBuilder, path, query || {}, (message: T) => {
+        onMessage(fetchProcessor.response(message));
+      });
+    };
+  }
+
+  private createOptionalStreamer<S, T, U>(fetchProcessor: FetchProcessor<S | undefined, T, U>) {
+    const streamer = this.createBasicStreamer(fetchProcessor);
+    return (onMessage: (message: U) => void, options?: S) => streamer(onMessage, options);
+  }
+
+  private createStaticStreamer<S, T, U>(fetchProcessor: FetchProcessor<S | undefined, T, U>) {
+    const streamer = this.createBasicStreamer(fetchProcessor);
+    return (onMessage: (message: U) => void) => streamer(onMessage, undefined);
+  }
+
+  private createBasicPagingStreamer<S, T, U>(fetchProcessor: FetchProcessor<S, T, U>) {
+    const pagedFetchProcessor = {
+      options: (options: { options: S; paging?: PagingOptions }) => {
+        const { path, query } = fetchProcessor.options(options.options);
+        return { path, query: Object.assign({}, query, options.paging || {}) };
+      },
+      response: fetchProcessor.response
+    };
+    return this.createBasicStreamer(pagedFetchProcessor);
+  }
+
+  private createOptionalPagingStreamer<S, T, U>(fetchProcessor: FetchProcessor<S | undefined, T, U>) {
+    const streamer = this.createBasicPagingStreamer(fetchProcessor);
+    return (onMessage: (message: U) => void, options?: { options?: S; paging?: PagingOptions }) =>
+      streamer(onMessage, { options: undefined, ...options });
+  }
+
+  private createStaticPagingStreamer<S, T, U>(fetchProcessor: FetchProcessor<S | undefined, T, U>) {
+    const streamer = this.createBasicPagingStreamer(fetchProcessor);
+    return (onMessage: (message: U) => void, paging?: PagingOptions) =>
+      streamer(onMessage, { options: undefined, paging });
   }
 }

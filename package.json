@@ -12,12 +12,14 @@
   "license": "Apache-2.0",
   "dependencies": {
     "base32.js": "^0.1.0",
+    "eventsource": "^1.0.7",
     "isomorphic-fetch": "^2.2.1",
     "sodium-native": "^2.4.2",
     "ts-stellar-xdr": "^0.5.3",
     "tweetnacl": "^1.0.1"
   },
   "devDependencies": {
+    "@types/eventsource": "^1.1.0",
     "@types/isomorphic-fetch": "0.0.35",
     "@types/node": "^12.0.3",
     "husky": "^2.3.0",
@@ -49,6 +51,7 @@
     "./lib/utils/base64.node.js": "./lib/utils/base64.browser.js",
     "./lib/utils/ed25519.node.js": "./lib/utils/ed25519.browser.js",
     "./lib/utils/sha256.node.js": "./lib/utils/sha256.browser.js",
+    "./lib/utils/sse.node.js": "./lib/utils/sse.browser.js",
     "./lib/utils/url.node.js": "./lib/utils/url.browser.js"
   }
 }

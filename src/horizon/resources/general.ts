@@ -1,3 +1,5 @@
+import * as asset from "../../simpleTypes/asset";
+
 export interface HalLink {
   href: string;
   templated?: boolean;
@@ -15,4 +17,17 @@ export interface Paged<T> {
 export interface PriceResponse {
   n: number;
   d: number;
+}
+
+export function simpleAssetToAssetQuery(simpleAsset: asset.SimpleAsset) {
+  if (simpleAsset === "native") {
+    return { asset_type: "native" };
+  }
+
+  const xdrAsset = asset.create(simpleAsset);
+  return {
+    assetType: xdrAsset.type === "assetTypeCreditAlphanum4" ? "credit_alphanum4" : "credit_alphanum12",
+    assetCode: simpleAsset.assetCode,
+    assetIssuer: simpleAsset.issuer
+  };
 }

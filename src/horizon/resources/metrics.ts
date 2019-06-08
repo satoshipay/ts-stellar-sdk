@@ -1,5 +1,12 @@
 import { HalLinks } from "./general";
 
+export const metricsActionProcessor = {
+  options: () => {
+    return { path: ["metrics"] };
+  },
+  response: (response: MetricsResponse) => response
+};
+
 export interface MetricsResponse {
   _links: HalLinks<"self">;
   goroutines: SingleMetric;

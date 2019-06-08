@@ -1,5 +1,12 @@
 import { HalLinks } from "./general";
 
+export const rootActionProcessor = {
+  options: () => {
+    return { path: [] };
+  },
+  response: (response: RootResponse) => response
+};
+
 export interface RootResponse {
   _links: HalLinks<
     "account" | "account_transactions" | "assets" | "metrics" | "order_book" | "self" | "transaction" | "transactions",

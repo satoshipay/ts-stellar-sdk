@@ -14,6 +14,12 @@ export interface Paged<T> {
   };
 }
 
+export interface PagingOptions {
+  cursor?: "now" | number;
+  order?: "asc" | "desc";
+  limit?: number;
+}
+
 export interface PriceResponse {
   n: number;
   d: number;

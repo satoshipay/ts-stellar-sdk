@@ -2,7 +2,7 @@ import fetch from "isomorphic-fetch";
 
 import { UrlBuilder } from "../utils/url";
 import { createStream } from "../utils/sse";
-import { Paged } from "./resources/general";
+import { Paged, PagingOptions } from "./resources/general";
 
 import { rootActionProcessor } from "./resources/root";
 import { metricsActionProcessor } from "./resources/metrics";
@@ -20,12 +20,6 @@ import { transactionShowProcessor, transactionIndexProcessor } from "./resources
 import { operationFeeStatsProcessor } from "./resources/fee";
 import { friendbotProcessor } from "./resources/friendbot";
 import { accountShowProcessor } from "./resources/account";
-
-export interface PagingOptions {
-  cursor?: "now" | number;
-  order?: "asc" | "desc";
-  limit?: number;
-}
 
 export type UrlQuery = Record<string, string | number | boolean | undefined>;
 export type UrlParameters = { path: string[]; query?: UrlQuery };
@@ -46,27 +40,27 @@ export class Horizon {
   getMetrics = this.createStaticGetter(metricsActionProcessor);
 
   getLedger = this.createBasicGetter(ledgerShowProcessor);
-  getLedgers = this.createStaticPagedGetter(ledgerIndexProcessor);
+  getLedgers = this.createStaticPagingGetter(ledgerIndexProcessor);
   streamLedgers = this.createStaticPagingStreamer(ledgerIndexProcessor);
 
   getOperation = this.createBasicGetter(operationShowProcessor);
-  getOperations = this.createOptionalPagedGetter(operationIndexProcessor);
+  getOperations = this.createOptionalPagingGetter(operationIndexProcessor);
   streamOperations = this.createOptionalPagingStreamer(operationIndexProcessor);
 
   getTransaction = this.createBasicGetter(transactionShowProcessor);
-  getTransactions = this.createOptionalPagedGetter(transactionIndexProcessor);
+  getTransactions = this.createOptionalPagingGetter(transactionIndexProcessor);
   streamTransactions = this.createOptionalPagingStreamer(transactionIndexProcessor);
 
-  getPayments = this.createOptionalPagedGetter(paymentsIndexProcessor);
+  getPayments = this.createOptionalPagingGetter(paymentsIndexProcessor);
   streamPayments = this.createOptionalPagingStreamer(paymentsIndexProcessor);
 
-  getEffects = this.createOptionalPagedGetter(effectIndexProcessor);
+  getEffects = this.createOptionalPagingGetter(effectIndexProcessor);
   streamEffects = this.createOptionalPagingStreamer(effectIndexProcessor);
 
   getOffers = this.createBasicPagedGetter(offersByAccountProcessor);
   streamOffers = this.createBasicPagingStreamer(offersByAccountProcessor);
 
-  getTrades = this.createOptionalPagedGetter(tradeIndexProcessor);
+  getTrades = this.createOptionalPagingGetter(tradeIndexProcessor);
   streamTrades = this.createOptionalPagingStreamer(tradeIndexProcessor);
 
   getAccount = this.createBasicGetter(accountShowProcessor);
@@ -82,7 +76,7 @@ export class Horizon {
 
   getPaths = this.createBasicPagedGetter(pathIndexProcessor);
 
-  getAssets = this.createOptionalPagedGetter(assetProcessor);
+  getAssets = this.createOptionalPagingGetter(assetProcessor);
 
   getFees = this.createStaticGetter(operationFeeStatsProcessor);
 
@@ -106,11 +100,6 @@ export class Horizon {
     return () => getter(undefined);
   }
 
-  private createOptionalGetter<S, T, U>(fetchProcessor: FetchProcessor<S | undefined, T, U>) {
-    const getter = this.createBasicGetter(fetchProcessor);
-    return (options?: S) => getter(options);
-  }
-
   private createBasicPagedGetter<S, T, U>(fetchProcessor: FetchProcessor<S, T, U>) {
     return (options: S) => {
       const { path, query } = fetchProcessor.options(options);
@@ -118,26 +107,27 @@ export class Horizon {
         options: (pagingOptions?: PagingOptions) => {
           return { path, query: Object.assign({}, query, pagingOptions || {}) };
         },
-        response: (response: Paged<T>) => {
-          const processedResponse: Paged<U> = {
-            _links: response._links,
+        response: (response: Paged<T>): Paged<U> => {
+          return {
+            ...response,
             _embedded: {
               records: response._embedded.records.map(fetchProcessor.response)
             }
           };
-          return processedResponse;
         }
       };
-      return this.createOptionalGetter(pagedFetchProcessor);
+
+      const getter = this.createBasicGetter(pagedFetchProcessor);
+      return (options?: PagingOptions) => getter(options);
     };
   }
 
-  private createStaticPagedGetter<S, T, U>(fetchProcessor: FetchProcessor<S | undefined, T, U>) {
+  private createStaticPagingGetter<S, T, U>(fetchProcessor: FetchProcessor<S | undefined, T, U>) {
     const pagedGetter = this.createBasicPagedGetter(fetchProcessor);
     return pagedGetter(undefined);
   }
 
-  private createOptionalPagedGetter<S, T, U>(fetchProcessor: FetchProcessor<S | undefined, T, U>) {
+  private createOptionalPagingGetter<S, T, U>(fetchProcessor: FetchProcessor<S | undefined, T, U>) {
     const pagedGetter = this.createBasicPagedGetter(fetchProcessor);
     return (options?: S) => pagedGetter(options);
   }
@@ -149,16 +139,6 @@ export class Horizon {
         onMessage(fetchProcessor.response(message));
       });
     };
-  }
-
-  private createOptionalStreamer<S, T, U>(fetchProcessor: FetchProcessor<S | undefined, T, U>) {
-    const streamer = this.createBasicStreamer(fetchProcessor);
-    return (onMessage: (message: U) => void, options?: S) => streamer(onMessage, options);
-  }
-
-  private createStaticStreamer<S, T, U>(fetchProcessor: FetchProcessor<S | undefined, T, U>) {
-    const streamer = this.createBasicStreamer(fetchProcessor);
-    return (onMessage: (message: U) => void) => streamer(onMessage, undefined);
   }
 
   private createBasicPagingStreamer<S, T, U>(fetchProcessor: FetchProcessor<S, T, U>) {

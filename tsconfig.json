@@ -10,8 +10,7 @@
     "esModuleInterop": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
-    "resolveJsonModule": true,
-    "noImplicitAny": false
+    "resolveJsonModule": true
   },
   "files": [
     "./src/utils/base64.browser.ts",

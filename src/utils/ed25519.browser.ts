@@ -1,4 +1,4 @@
-import { sign_keyPair_fromSeed, sign_detached, sign_detached_verify, randomBytes as rb } from "./tweetnacl";
+import { sign_keyPair_fromSeed, sign_detached, sign_detached_verify } from "./tweetnacl";
 
 export function keyPairFromSeed(seed: ArrayBuffer): { publicKey: ArrayBuffer; secretKey: ArrayBuffer } {
   const tweetNaclKeypair = sign_keyPair_fromSeed(new Uint8Array(seed));
@@ -18,5 +18,7 @@ export function verify(data: ArrayBuffer, signature: ArrayBuffer, publicKey: Arr
 }
 
 export function randomBytes(numberOfBytes: number): ArrayBuffer {
-  return rb(numberOfBytes).buffer;
+  const uint8Array = new Uint8Array(numberOfBytes);
+  crypto.getRandomValues(uint8Array);
+  return uint8Array.buffer;
 }

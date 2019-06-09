@@ -5,6 +5,7 @@ Assumptions
 - browser
   - support `atob` and `btoa` for browsers
   - support `crypto.subtle.digest`
+  - support `crypto.getRandomValues`
   - support `URL`
   - support `fetch`
   - support `EventSource`

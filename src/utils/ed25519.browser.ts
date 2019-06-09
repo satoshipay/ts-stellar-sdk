@@ -1,7 +1,7 @@
 import { sign_keyPair_fromSeed, sign_detached, sign_detached_verify } from "./tweetnacl";
 
-export function keyPairFromSeed(seed: ArrayBuffer): { publicKey: ArrayBuffer; secretKey: ArrayBuffer } {
-  const tweetNaclKeypair = sign_keyPair_fromSeed(new Uint8Array(seed));
+export async function keyPairFromSeed(seed: ArrayBuffer): Promise<{ publicKey: ArrayBuffer; secretKey: ArrayBuffer }> {
+  const tweetNaclKeypair = await sign_keyPair_fromSeed(new Uint8Array(seed));
 
   return {
     publicKey: tweetNaclKeypair.publicKey.buffer,
@@ -9,11 +9,12 @@ export function keyPairFromSeed(seed: ArrayBuffer): { publicKey: ArrayBuffer; se
   };
 }
 
-export function sign(data: ArrayBuffer, secretKey: ArrayBuffer): ArrayBuffer {
-  return sign_detached(new Uint8Array(data), new Uint8Array(secretKey)).buffer;
+export async function sign(data: ArrayBuffer, secretKey: ArrayBuffer): Promise<ArrayBuffer> {
+  const result = await sign_detached(new Uint8Array(data), new Uint8Array(secretKey));
+  return result.buffer;
 }
 
-export function verify(data: ArrayBuffer, signature: ArrayBuffer, publicKey: ArrayBuffer): boolean {
+export async function verify(data: ArrayBuffer, signature: ArrayBuffer, publicKey: ArrayBuffer): Promise<boolean> {
   return sign_detached_verify(new Uint8Array(data), new Uint8Array(signature), new Uint8Array(publicKey));
 }
 

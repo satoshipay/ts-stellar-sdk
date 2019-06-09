@@ -77,12 +77,14 @@ export function createTransactionEnvelope(simpleTransaction: SimpleTransaction):
 export async function sign(transactionEnvelope: xdr.TransactionEnvelope, network: Network, ...keypairs: Keypair[]) {
   const transactionHash = await getHash(transactionEnvelope.tx, network);
 
-  keypairs.forEach(keypair => {
-    transactionEnvelope.signatures.push({
-      hint: keypair.getSignatureHint(),
-      signature: keypair.createSignature(transactionHash)
-    });
-  });
+  await Promise.all(
+    keypairs.map(async keypair => {
+      transactionEnvelope.signatures.push({
+        hint: keypair.getSignatureHint(),
+        signature: await keypair.createSignature(transactionHash)
+      });
+    })
+  );
 }
 
 export async function signHashX(transactionEnvelope: xdr.TransactionEnvelope, preImage: ArrayBuffer | string) {
@@ -106,7 +108,7 @@ export async function createSignature(
   network: Network,
   keypair: Keypair
 ): Promise<string> {
-  const signature = keypair.createSignature(await getHash(transaction, network));
+  const signature = await keypair.createSignature(await getHash(transaction, network));
   return fromBinary(signature);
 }
 

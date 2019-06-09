@@ -33,46 +33,52 @@ export class PublicKey {
     return accountIdXdr.slice(accountIdXdr.byteLength - 4);
   }
 
-  verifySignature(data: ArrayBuffer, signature: ArrayBuffer): boolean {
+  async verifySignature(data: ArrayBuffer, signature: ArrayBuffer): Promise<boolean> {
     return verify(data, signature, this.publicKey);
   }
 }
 
 export class Keypair extends PublicKey {
-  public secretKey: ArrayBuffer;
-  public secretSeed: ArrayBuffer;
+  public secretKey!: ArrayBuffer;
+  public secretSeed!: ArrayBuffer;
 
-  constructor(secret: ArrayBuffer) {
+  private constructor(publicKey: ArrayBuffer) {
+    super(publicKey);
+  }
+
+  static async create(secret: ArrayBuffer): Promise<Keypair> {
     if (secret.byteLength !== 32) {
       throw new Error("Invalid secret");
     }
 
-    const keypair = keyPairFromSeed(secret);
+    const ed25519Keypair = await keyPairFromSeed(secret);
 
-    super(keypair.publicKey);
-    this.secretKey = keypair.secretKey;
-    this.secretSeed = secret;
+    const keypair = new this(ed25519Keypair.publicKey);
+    keypair.secretKey = ed25519Keypair.secretKey;
+    keypair.secretSeed = secret;
+
+    return keypair;
   }
 
-  static fromSecretString(secretString: string): Keypair {
+  static async fromSecretString(secretString: string): Promise<Keypair> {
     const secret = base32ToBinary("ed25519SecretSeed", secretString);
-    return new this(secret);
+    return this.create(secret);
   }
 
-  static createRandomKeypair(): Keypair {
+  static async createRandomKeypair(): Promise<Keypair> {
     const randomSeed = randomBytes(32);
-    return new this(randomSeed);
+    return this.create(randomSeed);
   }
 
-  static createNetworkMasterKeyPair(network: Network): Keypair {
-    return new this(network.id);
+  static async createNetworkMasterKeyPair(network: Network): Promise<Keypair> {
+    return this.create(network.id);
   }
 
   getSecretString() {
     return binaryToBase32("ed25519SecretSeed", this.secretSeed);
   }
 
-  createSignature(data: ArrayBuffer): ArrayBuffer {
+  async createSignature(data: ArrayBuffer): Promise<ArrayBuffer> {
     return sign(data, this.secretKey);
   }
 }

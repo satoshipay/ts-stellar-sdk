@@ -15,7 +15,7 @@
     "eventsource": "^1.0.7",
     "isomorphic-fetch": "^2.2.1",
     "sodium-native": "^2.4.2",
-    "ts-stellar-xdr": "^0.5.3"
+    "ts-stellar-xdr": "^0.5.4"
   },
   "devDependencies": {
     "@types/eventsource": "^1.1.0",

@@ -13,14 +13,14 @@
   "dependencies": {
     "base32.js": "^0.1.0",
     "eventsource": "^1.0.7",
-    "isomorphic-fetch": "^2.2.1",
+    "node-fetch": "^2.6.0",
     "sodium-native": "^2.4.2",
     "ts-stellar-xdr": "^0.5.4"
   },
   "devDependencies": {
     "@types/eventsource": "^1.1.0",
-    "@types/isomorphic-fetch": "0.0.35",
     "@types/node": "^12.0.3",
+    "@types/node-fetch": "^2.3.5",
     "husky": "^2.3.0",
     "lint-staged": "^8.1.6",
     "prettier": "^1.17.1",
@@ -49,7 +49,8 @@
   "browser": {
     "./lib/utils/base64.node.js": "./lib/utils/base64.browser.js",
     "./lib/utils/ed25519.node.js": "./lib/utils/ed25519.browser.js",
-    "./lib/utils/sha256.node.js": "./lib/utils/sha256.browser.js",
+    "./lib/utils/fetch.node.js": "./lib/utils/fetch.browser.js",
+    "./lib/utils/sha.node.js": "./lib/utils/sha.browser.js",
     "./lib/utils/sse.node.js": "./lib/utils/sse.browser.js",
     "./lib/utils/url.node.js": "./lib/utils/url.browser.js"
   }

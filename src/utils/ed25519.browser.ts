@@ -1,4 +1,4 @@
-import { sign_keyPair_fromSeed, sign_detached, sign_detached_verify } from "./tweetnacl";
+import { sign_keyPair_fromSeed, sign_detached, sign_detached_verify } from "./tweetnacl.browser";
 
 export async function keyPairFromSeed(seed: ArrayBuffer): Promise<{ publicKey: ArrayBuffer; secretKey: ArrayBuffer }> {
   const tweetNaclKeypair = await sign_keyPair_fromSeed(new Uint8Array(seed));

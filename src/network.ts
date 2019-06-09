@@ -1,6 +1,6 @@
 import { stringToBinary } from "./utils/utf8";
 
-import { sha256 } from "./utils/sha256.node";
+import { sha256 } from "./utils/sha.node";
 import { PUBLIC_NETWORK_PASSPHRASE, TEST_NETWORK_PASSPHRASE } from "./config/config";
 
 export type Network = {

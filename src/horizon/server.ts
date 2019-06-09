@@ -1,5 +1,4 @@
-import fetch from "isomorphic-fetch";
-
+import fetch from "../utils/fetch.node";
 import { UrlBuilder } from "../utils/url";
 import { createStream } from "../utils/sse";
 import { Paged, PagingOptions } from "./resources/general";

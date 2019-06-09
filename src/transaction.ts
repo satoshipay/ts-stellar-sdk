@@ -1,6 +1,6 @@
 import { xdr, int64 } from "ts-stellar-xdr";
 
-import { sha256 } from "./utils/sha256.node";
+import { sha256 } from "./utils/sha.node";
 import { fromBinary, toBinary } from "./utils/base64.node";
 import * as operation from "./operation";
 import * as accountId from "./simpleTypes/accountId";

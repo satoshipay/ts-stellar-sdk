@@ -1,4 +1,4 @@
-import { sha512 } from "./sha256.browser";
+import { sha512 } from "./sha.browser";
 
 // Ported in 2014 by Dmitry Chestnykh and Devi Mandiri.
 // Public domain.

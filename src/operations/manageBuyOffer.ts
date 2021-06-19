@@ -3,11 +3,12 @@ import { xdr } from "ts-stellar-xdr";
 import * as asset from "../simpleTypes/asset";
 import * as int64 from "../simpleTypes/int64";
 import * as price from "../simpleTypes/price";
+import * as muxedAccount from "../simpleTypes/muxedAccount";
 import { convert } from "../utils/conversion";
 
 export interface SimpleManageBuyOfferOp {
   type: "manageBuyOffer";
-  sourceAccount?: string;
+  sourceAccount?: muxedAccount.SimpleMuxedAccount;
   selling: asset.SimpleAsset;
   buying: asset.SimpleAsset;
   buyAmountStroops: int64.SimpleInt64;
@@ -25,7 +26,10 @@ export function create(simpleOperation: SimpleManageBuyOfferOp): xdr.ManageBuyOf
   };
 }
 
-export function simplify(operation: xdr.ManageBuyOfferOp, sourceAccount?: string): SimpleManageBuyOfferOp {
+export function simplify(
+  operation: xdr.ManageBuyOfferOp,
+  sourceAccount?: muxedAccount.SimpleMuxedAccount
+): SimpleManageBuyOfferOp {
   const offerId = int64.simplify(operation.offerId);
 
   return {

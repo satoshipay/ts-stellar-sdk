@@ -1,6 +1,6 @@
 import { xdr } from "ts-stellar-xdr";
 
-export function create(assetCode: string): xdr.AllowTrustOpAsset {
+export function create(assetCode: string): xdr.AssetCode {
   if (!/^[a-zA-Z0-9]{1,12}$/.test(assetCode)) {
     throw new Error("Asset code is invalid (maximum alphanumeric, 12 characters at max)");
   }

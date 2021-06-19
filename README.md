@@ -1,3 +1,5 @@
+Supports Stellar Protocol version 17.0
+
 Assumptions
 
 - all

@@ -1,6 +1,6 @@
 {
   "name": "ts-stellar-sdk",
-  "version": "0.4.4",
+  "version": "0.5.0",
   "description": "A TypeScript low level sdk for Stellar",
   "main": "lib/index.js",
   "scripts": {
@@ -14,15 +14,15 @@
     "base32.js": "^0.1.0",
     "eventsource": "^1.0.7",
     "node-fetch": "^2.6.0",
-    "sodium-native": "^2.4.2",
-    "ts-stellar-xdr": "^0.5.4"
+    "sodium-native": "^3.2.1",
+    "ts-stellar-xdr": "^0.6.1"
   },
   "devDependencies": {
     "@types/eventsource": "^1.1.0",
     "@types/node": "^12.0.3",
     "@types/node-fetch": "^2.3.5",
     "husky": "^2.3.0",
-    "lint-staged": "^8.1.6",
+    "lint-staged": "^11.0.0",
     "prettier": "^1.17.1",
     "rimraf": "^2.6.3",
     "typescript": "^3.4.5"

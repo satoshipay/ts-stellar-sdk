@@ -5,28 +5,28 @@ import * as int64 from "../simpleTypes/int64";
 import * as muxedAccount from "../simpleTypes/muxedAccount";
 import { convert } from "../utils/conversion";
 
-export interface SimplePaymentOp {
-  type: "payment";
+export interface SimpleClawbackOp {
+  type: "clawback";
   sourceAccount?: muxedAccount.SimpleMuxedAccount;
-  destination: muxedAccount.SimpleMuxedAccount;
   asset: asset.SimpleAsset;
+  from: muxedAccount.SimpleMuxedAccount;
   amountStroops: int64.SimpleInt64;
 }
 
-export function create(simpleOperation: SimplePaymentOp): xdr.PaymentOp {
+export function create(simpleOperation: SimpleClawbackOp): xdr.ClawbackOp {
   return {
-    destination: convert(simpleOperation, muxedAccount.create, "destination"),
     asset: convert(simpleOperation, asset.create, "asset"),
-    amount: convert(simpleOperation, int64.createPositive, "amountStroops")
+    from: convert(simpleOperation, muxedAccount.create, "from"),
+    amount: convert(simpleOperation, int64.createNonnegative, "amountStroops")
   };
 }
 
-export function simplify(operation: xdr.PaymentOp, sourceAccount?: muxedAccount.SimpleMuxedAccount): SimplePaymentOp {
+export function simplify(operation: xdr.ClawbackOp, sourceAccount?: muxedAccount.SimpleMuxedAccount): SimpleClawbackOp {
   return {
-    type: "payment",
+    type: "clawback",
     sourceAccount,
-    destination: muxedAccount.simplify(operation.destination),
     asset: asset.simplify(operation.asset),
+    from: muxedAccount.simplify(operation.from),
     amountStroops: int64.simplify(operation.amount)
   };
 }

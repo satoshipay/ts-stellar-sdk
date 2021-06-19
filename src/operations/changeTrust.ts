@@ -2,11 +2,12 @@ import { xdr, int64 } from "ts-stellar-xdr";
 
 import * as asset from "../simpleTypes/asset";
 import * as simpleInt64 from "../simpleTypes/int64";
+import * as muxedAccount from "../simpleTypes/muxedAccount";
 import { convert } from "../utils/conversion";
 
 export interface SimpleChangeTrustOp {
   type: "changeTrust";
-  sourceAccount?: string;
+  sourceAccount?: muxedAccount.SimpleMuxedAccount;
   line: asset.SimpleAsset;
   limitStroops?: simpleInt64.SimpleInt64;
 }
@@ -25,7 +26,10 @@ export function create(simpleOperation: SimpleChangeTrustOp): xdr.ChangeTrustOp 
   };
 }
 
-export function simplify(operation: xdr.ChangeTrustOp, sourceAccount?: string): SimpleChangeTrustOp {
+export function simplify(
+  operation: xdr.ChangeTrustOp,
+  sourceAccount?: muxedAccount.SimpleMuxedAccount
+): SimpleChangeTrustOp {
   return {
     type: "changeTrust",
     sourceAccount,

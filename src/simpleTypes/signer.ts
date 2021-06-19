@@ -1,8 +1,7 @@
 import { xdr } from "ts-stellar-xdr";
 
-import { base32ToBinary, binaryToBase32 } from "../utils/base32";
-import { hexToBinary, binaryToHex } from "../utils/hex";
 import * as weight from "./weight";
+import * as signerKey from "./signerKey";
 
 export type SimpleSigner =
   | {
@@ -22,34 +21,7 @@ export type SimpleSigner =
     };
 
 export function create(simpleSigner: SimpleSigner): xdr.Signer {
-  let key: xdr.SignerKey;
-
-  switch (simpleSigner.type) {
-    case "ed25519":
-      key = {
-        type: "signerKeyTypeEd25519",
-        value: base32ToBinary("ed25519PublicKey", simpleSigner.value)
-      };
-      break;
-    case "preAuthTx":
-      key = {
-        type: "signerKeyTypePreAuthTx",
-        value: hexToBinary(simpleSigner.value)
-      };
-      break;
-    case "hashX":
-      key = {
-        type: "signerKeyTypeHashX",
-        value: hexToBinary(simpleSigner.value)
-      };
-      break;
-    default:
-      throw new Error("Invalid signer type");
-  }
-
-  if (key.value.byteLength !== 32) {
-    throw new Error(`invalid signer key length (expected: 32; got: ${key.value.byteLength})`);
-  }
+  const key = signerKey.create(simpleSigner);
 
   let signerWeight;
   try {
@@ -65,24 +37,6 @@ export function create(simpleSigner: SimpleSigner): xdr.Signer {
 }
 
 export function simplify(signer: xdr.Signer): SimpleSigner {
-  switch (signer.key.type) {
-    case "signerKeyTypeEd25519":
-      return {
-        type: "ed25519",
-        value: binaryToBase32("ed25519PublicKey", signer.key.value),
-        weight: signer.weight
-      };
-    case "signerKeyTypePreAuthTx":
-      return {
-        type: "preAuthTx",
-        value: binaryToHex(signer.key.value),
-        weight: signer.weight
-      };
-    case "signerKeyTypeHashX":
-      return {
-        type: "hashX",
-        value: binaryToHex(signer.key.value),
-        weight: signer.weight
-      };
-  }
+  const key = signerKey.simplify(signer.key);
+  return { ...key, weight: signer.weight };
 }

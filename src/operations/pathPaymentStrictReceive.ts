@@ -1,22 +1,22 @@
 import { xdr } from "ts-stellar-xdr";
 
 import * as asset from "../simpleTypes/asset";
-import * as accountId from "../simpleTypes/accountId";
 import * as int64 from "../simpleTypes/int64";
+import * as muxedAccount from "../simpleTypes/muxedAccount";
 import { convert } from "../utils/conversion";
 
-export interface SimplePathPaymentOp {
-  type: "pathPayment";
-  sourceAccount?: string;
+export interface SimplePathPaymentStrictReceiveOp {
+  type: "pathPaymentStrictReceive";
+  sourceAccount?: muxedAccount.SimpleMuxedAccount;
   sendAsset: asset.SimpleAsset;
   sendMaxStroops: int64.SimpleInt64;
-  destination: string;
+  destination: muxedAccount.SimpleMuxedAccount;
   destAsset: asset.SimpleAsset;
   destAmountStroops: int64.SimpleInt64;
   path?: asset.SimpleAsset[];
 }
 
-export function create(simpleOperation: SimplePathPaymentOp): xdr.PathPaymentOp {
+export function create(simpleOperation: SimplePathPaymentStrictReceiveOp): xdr.PathPaymentStrictReceiveOp {
   const path = (simpleOperation.path || []).map((simpleAsset, index) => {
     try {
       return asset.create(simpleAsset);
@@ -28,22 +28,25 @@ export function create(simpleOperation: SimplePathPaymentOp): xdr.PathPaymentOp 
   return {
     sendAsset: convert(simpleOperation, asset.create, "sendAsset"),
     sendMax: convert(simpleOperation, int64.createPositive, "sendMaxStroops"),
-    destination: convert(simpleOperation, accountId.create, "destination"),
+    destination: convert(simpleOperation, muxedAccount.create, "destination"),
     destAsset: convert(simpleOperation, asset.create, "destAsset"),
     destAmount: convert(simpleOperation, int64.createPositive, "destAmountStroops"),
     path
   };
 }
 
-export function simplify(operation: xdr.PathPaymentOp, sourceAccount?: string): SimplePathPaymentOp {
+export function simplify(
+  operation: xdr.PathPaymentStrictReceiveOp,
+  sourceAccount?: muxedAccount.SimpleMuxedAccount
+): SimplePathPaymentStrictReceiveOp {
   const path = operation.path.map(asset.simplify);
 
   return {
-    type: "pathPayment",
+    type: "pathPaymentStrictReceive",
     sourceAccount,
     sendAsset: asset.simplify(operation.sendAsset),
     sendMaxStroops: int64.simplify(operation.sendMax),
-    destination: accountId.simplify(operation.destination),
+    destination: muxedAccount.simplify(operation.destination),
     destAsset: asset.simplify(operation.destAsset),
     destAmountStroops: int64.simplify(operation.destAmount),
     path

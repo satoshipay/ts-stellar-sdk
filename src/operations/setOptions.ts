@@ -4,11 +4,12 @@ import * as signer from "../simpleTypes/signer";
 import * as accountId from "../simpleTypes/accountId";
 import * as weight from "../simpleTypes/weight";
 import * as number from "../simpleTypes/number";
+import * as muxedAccount from "../simpleTypes/muxedAccount";
 import { convertOptional } from "../utils/conversion";
 
 export interface SimpleSetOptionsOp {
-  type: "setOption";
-  sourceAccount?: string;
+  type: "setOptions";
+  sourceAccount?: muxedAccount.SimpleMuxedAccount;
   inflationDest?: string;
   clearFlags?: number;
   setFlags?: number;
@@ -38,9 +39,12 @@ export function create(simpleOperation: SimpleSetOptionsOp): xdr.SetOptionsOp {
   };
 }
 
-export function simplify(operation: xdr.SetOptionsOp, sourceAccount?: string): SimpleSetOptionsOp {
+export function simplify(
+  operation: xdr.SetOptionsOp,
+  sourceAccount?: muxedAccount.SimpleMuxedAccount
+): SimpleSetOptionsOp {
   return {
-    type: "setOption",
+    type: "setOptions",
     sourceAccount,
     inflationDest: operation.inflationDest && accountId.simplify(operation.inflationDest),
     clearFlags: operation.clearFlags && operation.clearFlags,

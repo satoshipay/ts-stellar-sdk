@@ -1,11 +1,12 @@
 import { xdr } from "ts-stellar-xdr";
 
 import * as int64 from "../simpleTypes/int64";
+import * as muxedAccount from "../simpleTypes/muxedAccount";
 import { convert } from "../utils/conversion";
 
 export interface SimpleBumpSequenceOp {
   type: "bumpSequence";
-  sourceAccount?: string;
+  sourceAccount?: muxedAccount.SimpleMuxedAccount;
   bumpTo: int64.SimpleInt64;
 }
 
@@ -15,7 +16,10 @@ export function create(simpleOperation: SimpleBumpSequenceOp): xdr.BumpSequenceO
   };
 }
 
-export function simplify(operation: xdr.BumpSequenceOp, sourceAccount?: string): SimpleBumpSequenceOp {
+export function simplify(
+  operation: xdr.BumpSequenceOp,
+  sourceAccount?: muxedAccount.SimpleMuxedAccount
+): SimpleBumpSequenceOp {
   return {
     type: "bumpSequence",
     sourceAccount,

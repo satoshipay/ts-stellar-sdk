@@ -1,10 +1,11 @@
 import { xdr } from "ts-stellar-xdr";
 
+import * as muxedAccount from "../simpleTypes/muxedAccount";
 import { stringToBinary, binaryToString } from "../utils/utf8";
 
 export interface SimpleManageDataOp {
-  type: "manageDatum";
-  sourceAccount?: string;
+  type: "manageData";
+  sourceAccount?: muxedAccount.SimpleMuxedAccount;
   dataName: string;
   dataValue?: ArrayBuffer | string;
 }
@@ -29,9 +30,12 @@ export function create(simpleOperation: SimpleManageDataOp): xdr.ManageDataOp {
   };
 }
 
-export function simplify(operation: xdr.ManageDataOp, sourceAccount?: string): SimpleManageDataOp {
+export function simplify(
+  operation: xdr.ManageDataOp,
+  sourceAccount?: muxedAccount.SimpleMuxedAccount
+): SimpleManageDataOp {
   return {
-    type: "manageDatum",
+    type: "manageData",
     sourceAccount,
     dataName: operation.dataName,
     dataValue: operation.dataValue && binaryToString(operation.dataValue)

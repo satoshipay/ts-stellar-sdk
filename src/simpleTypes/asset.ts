@@ -1,7 +1,7 @@
 import { xdr } from "ts-stellar-xdr";
 
 import * as accountId from "./accountId";
-import * as allowTrustOpAsset from "./allowTrustOpAsset";
+import * as assetCode from "./assetCode";
 
 export type SimpleAsset = "native" | { assetCode: string; issuer: string };
 
@@ -10,7 +10,7 @@ export function create(simpleAsset: SimpleAsset): xdr.Asset {
     return { type: "assetTypeNative" };
   }
 
-  const asset = allowTrustOpAsset.create(simpleAsset.assetCode);
+  const asset = assetCode.create(simpleAsset.assetCode);
   const value = {
     assetCode: asset.value,
     issuer: accountId.create(simpleAsset.issuer)
@@ -28,7 +28,7 @@ export function simplify(asset: xdr.Asset): SimpleAsset {
     case "assetTypeCreditAlphanum4":
     case "assetTypeCreditAlphanum12":
       return {
-        assetCode: allowTrustOpAsset.simplify({ value: asset.value.assetCode }),
+        assetCode: assetCode.simplify({ value: asset.value.assetCode }),
         issuer: accountId.simplify(asset.value.issuer)
       };
   }

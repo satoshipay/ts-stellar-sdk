@@ -1,7 +1,9 @@
 import { int64 } from "ts-stellar-xdr";
 
+import * as muxedAccount from "./simpleTypes/muxedAccount";
+
 export interface TransactionSource {
-  sourceAccount: string;
+  sourceAccount: muxedAccount.SimpleMuxedAccount;
   sequenceNumber: int64.Signed;
 }
 
